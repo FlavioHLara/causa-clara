@@ -134,9 +134,25 @@ T01 Acesso
                             ├─ T16 Membros (somente Dono)
                             ├─ T17 Relatórios
                             └─ T18 Cadastro institucional (somente Dono)
+                                 T19 Categorias (a partir do seletor de T12)
 ```
 
 Navegação autenticada por barra lateral fixa, com itens variando conforme o tipo de conta e o papel de vínculo. Navegação pública por cabeçalho simples.
+
+### Como cada perfil entra
+
+O protótipo navegável precisa de um ponto de entrada por perfil, senão metade das telas fica inalcançável. São três:
+
+| Entrada | Caminho | Chega em |
+|---|---|---|
+| Gestor com vínculo | T01, botão **Entrar** | T10 Painel administrativo |
+| Gestor sem vínculo | T02, cartão **Gestor** | T09 Primeiro acesso |
+| Apoiador | T02, cartão **Apoiador** ou botão **Criar conta** | T06 Meu painel |
+| Visitante | T01, **Consultar transparência sem entrar** | T05 Transparência |
+
+O botão **Entrar** leva ao painel do gestor porque o campo de e-mail de T01 traz `gestor@casasemear.org.br`: o protótipo é determinístico, e o destino precisa ser coerente com o dado exibido. Os dois cartões de tipo de conta de T02 são clicáveis e ramificam os perfis — é também o que acontece no sistema, já que a escolha do tipo decide para onde o cadastro conclui (RN01).
+
+**T19 Categorias não tem item na barra lateral.** No protótipo ela é alcançada pelo seletor de categoria de T12. Decidir se Categorias ganha item de menu próprio ou fica como subtela de Instituição é pendência de projeto, não de protótipo.
 
 ---
 
@@ -238,7 +254,35 @@ Nomes de doadores sempre em primeiro nome ou anônimos, respeitando RF66 e RN09 
 3. Página **Telas · Público** — T01 a T05
 4. Página **Telas · Apoiador** — T06 a T08
 5. Página **Telas · Gestor** — T09 a T17
-6. Página **Móvel** — versões em 360 px de T01, T05, T07, T10 e T13
+6. Página **Móvel** — versão em 360 px de cada uma das dezenove telas, M01 a M19, mais as três gavetas de menu M20 a M22
 7. **Protótipo** — ligações de navegação conforme o mapa da seção 3
 
-As cinco telas escolhidas para a versão móvel cobrem os dois fluxos de entrada, o painel público, o registro de doação e o controle de estoque — suficiente para demonstrar o atendimento a RNF01 sem duplicar as dezessete.
+A versão móvel cobre as dezenove telas, uma a uma. A correspondência é direta: M*nn* é a versão em 360 px de T*nn*, com os mesmos dados de exemplo — mesma instituição fictícia, mesmo período de referência, mesmos lançamentos —, para que as capturas do artigo não se contradigam entre os dois enquadramentos.
+
+### Padrão responsivo
+
+As regras abaixo valem para todas as telas e explicam por que nenhuma versão móvel é a de desktop espremida:
+
+| Elemento de desktop | Forma em 360 px |
+|---|---|
+| Tabela | Cartões empilhados. Cada rótulo de coluna vira um par rótulo–valor dentro do cartão, e a coluna de ações vira botões de largura cheia ao pé. |
+| Barra lateral de 248 px | Barra superior fixa de 56 px, com o título da seção à esquerda e menu sanduíche à direita. O sanduíche abre uma gaveta de menu — ver abaixo. |
+| Linha de filtros lado a lado | Campos empilhados, ou duas colunas de 158 px quando são apenas dois e curtos. |
+| Paginação de 720 px | Bloco compacto: contagem de registros em cima, Anterior · posição · Próxima embaixo. |
+| Cartões de indicador em fila de quatro | Dois por linha, em 158 px, ou um por linha quando o número é longo. |
+| Linha de tabela em situação crítica | Cartão inteiro com fundo `critico/100`, borda `critico/600`, etiqueta **Crítico** e os valores em `critico/600` — cor, ícone e rótulo, conforme RNF08. |
+| Estado vazio de 520 px | Bloco centrado de largura cheia, sem ilustração. |
+
+A margem lateral é de 16 px, o que dá 328 px de conteúdo útil. Alvos de toque têm pelo menos 40 px de altura.
+
+### As três gavetas de menu
+
+A barra lateral do desktop não cabe em 360 px, e sem substituto o menu sanduíche não leva a lugar nenhum — metade das telas de gestor ficaria inalcançável no navegável. São três telas de menu, uma por perfil, espelhando exatamente as variantes do componente **Barra lateral** e o **Cabeçalho público**:
+
+| Tela | Perfil | Itens |
+|---|---|---|
+| **M20 · Menu público** | Visitante | Instituições · Transparência · Entrar |
+| **M21 · Menu do apoiador** | Apoiador | Meu painel · Instituições · Registrar doação · Minhas doações · Sair |
+| **M22 · Menu do gestor** | Gestor Dono | Painel administrativo · Doações recebidas · Despesas · Estoque · Alertas · Membros · Relatórios · Instituição · Sair |
+
+Elas não têm correspondente no desktop, onde a barra lateral está sempre visível. São o preço de 360 px, não telas novas do sistema, e por isso não recebem numeração T nem atendem a RF próprio.

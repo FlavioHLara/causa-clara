@@ -32,7 +32,7 @@ A Causa Clara acopla as duas pontas. O gestor registra doações, despesas e mov
 | [docs/04-estudo-de-cor.html](docs/04-estudo-de-cor.html) | Contrastes calculados pela WCAG e justificativa da paleta |
 | [docs/05-arquitetura.md](docs/05-arquitetura.md) | Projeto arquitetural e ordem de construção |
 
-Protótipo de alta fidelidade no Figma: 19 telas desktop, 5 móveis e 34 ligações de navegação.
+Protótipo de alta fidelidade no Figma: 19 telas desktop, 19 móveis mais 3 gavetas de menu, e 94 ligações de navegação. Todo perfil — visitante, apoiador, gestor sem vínculo e gestor com vínculo — tem ponto de entrada próprio no navegável.
 
 ## Stack
 

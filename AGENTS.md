@@ -30,7 +30,7 @@ O sistema resolve dois problemas acoplados do terceiro setor: a gestão administ
 |---|---|
 | Requisitos | Fechados — RF01–RF81, RN01–RN16, RNF01–RNF40 |
 | Diagramas de caso de uso e ER | Prontos |
-| Protótipo de alta fidelidade no Figma | Pronto — 19 telas desktop, 5 móveis, 34 ligações |
+| Protótipo de alta fidelidade no Figma | Pronto e navegável — 19 telas desktop, 19 móveis mais 3 gavetas de menu, 94 ligações, sem tela órfã |
 | Projeto arquitetural | Decidido e documentado |
 | Código | **Não iniciado** |
 

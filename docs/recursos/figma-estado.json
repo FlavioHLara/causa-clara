@@ -3,7 +3,7 @@
   "fileKey": "stQ02xCuTeByDjDGdAT574",
   "fileUrl": "https://www.figma.com/design/stQ02xCuTeByDjDGdAT574",
   "sessionId": "413e11d4-b9aa-4b8b-9106-4cc14cd21895",
-  "step": "CONCLUIDO: 19 telas desktop + 5 moveis + 34 ligacoes + paleta roxa + marca Causa Clara aplicada",
+  "step": "CONCLUIDO: 19 telas desktop + 19 moveis + 3 gavetas de menu + 94 ligacoes (38 desktop, 56 moveis) + paleta roxa + marca Causa Clara aplicada. Nenhuma tela orfa nas duas paginas.",
   "limitacoesDoPlano": {
     "paginas": "maximo 3 — por isso Fundamentos e Componentes ficaram na mesma pagina",
     "chamadasMCP": "limite atingido em 2026-10-19"
@@ -105,17 +105,54 @@
     },
     "telasMovel": {
       "M01 Acesso": "21:39",
+      "M02 Criar conta": "35:45",
+      "M03 Instituicoes": "35:93",
+      "M04 Perfil da instituicao": "35:161",
       "M05 Transparencia": "21:62",
+      "M06 Meu painel": "35:205",
       "M07 Registrar doacao": "21:118",
+      "M08 Minhas doacoes": "36:97",
+      "M09 Primeiro acesso do gestor": "36:169",
       "M10 Painel administrativo": "21:153",
-      "M13 Itens de estoque": "21:215"
+      "M11 Doacoes recebidas": "36:212",
+      "M12 Despesas e comprovantes": "36:312",
+      "M13 Itens de estoque": "21:215",
+      "M14 Movimentacao do item": "37:170",
+      "M15 Alertas de estoque": "37:253",
+      "M16 Membros e solicitacoes": "37:339",
+      "M17 Relatorios e prestacao de contas": "38:233",
+      "M18 Cadastro institucional": "38:357",
+      "M19 Categorias": "38:417",
+      "M20 Menu publico": "48:279",
+      "M21 Menu do apoiador": "48:300",
+      "M22 Menu do gestor": "48:327"
     }
+  },
+  "layoutMovel": {
+    "grade": "5 colunas, passo de 460 px em x; linhas espacadas pela tela mais alta da linha + 160 px",
+    "ordem": "M01 a M19, da esquerda para a direita, de cima para baixo; M20 a M22 numa linha propria em y=6990",
+    "larguraDaTela": 360,
+    "larguraDoConteudo": 328,
+    "ligacoes": "56 — botoes e links rotulados, itens das tres gavetas, e o sanduiche de cada barra superior abrindo a gaveta do perfil"
+  },
+  "navegacao": {
+    "entradasPorPerfil": {
+      "gestor com vinculo": "T01/M01 botao Entrar -> T10/M10, coerente com gestor@casasemear.org.br no campo de e-mail",
+      "gestor sem vinculo": "T02/M02 cartao Gestor -> T09/M09",
+      "apoiador": "T02/M02 cartao Apoiador ou botao Criar conta -> T06/M06",
+      "visitante": "T01/M01 Consultar transparencia sem entrar -> T05/M05"
+    },
+    "gavetasMovel": "o sanduiche de M03-M05 abre M20, o de M06-M08 abre M21, o de M10-M19 abre M22; o sanduiche de cada gaveta volta ao painel do perfil",
+    "T19": "sem item na barra lateral: alcancada pelo seletor de categoria de T12/M12. Decidir se ganha item de menu proprio e pendencia de projeto.",
+    "orfas": "nenhuma, conferido por varredura das reacoes nas duas paginas"
   },
   "licoesAprendidas": [
     "resize() trava os dois eixos em FIXED: sempre restaurar primaryAxisSizingMode=AUTO (vertical) ou counterAxisSizingMode=AUTO (horizontal) depois, senao o container colapsa em 10px",
     "counterAxisAlignItems aceita MIN/MAX/CENTER/BASELINE, nunca END",
     "createNodeFromSvg ignora stroke-dasharray em circulos: desenhar rosca com setores anulares via caminhos de arco",
-    "erro em qualquer ponto do script reverte a transacao inteira, entao scripts grandes sao seguros para repetir"
+    "erro em qualquer ponto do script reverte a transacao inteira, entao scripts grandes sao seguros para repetir",
+    "setReactionsAsync recusa ligacao de um quadro para ele mesmo: 'destinations must be a different top-level frame'. Autorreferencia derruba o script inteiro, entao filtrar origem.id === destino.id antes de ligar",
+    "texto criado sem largura explicita fica em textAutoResize=WIDTH_AND_HEIGHT e estoura o contorno em vez de quebrar linha: titulo de tela em 360 px precisa de resize(328) + textAutoResize=HEIGHT antes do FILL"
   ],
   "completedSteps": [
     "descoberta",
@@ -124,22 +161,27 @@
     "telas T01-T09",
     "paleta roxa",
     "telas T10-T19",
-    "telas moveis",
-    "ligacoes de prototipo",
+    "telas moveis M01, M05, M07, M10, M13",
+    "ligacoes de prototipo desktop",
     "polimento de alinhamento",
     "marca Causa Clara",
     "pagina de Capa",
-    "separacao de paginas"
+    "separacao de paginas",
+    "telas moveis restantes M02-M04, M06, M08, M09, M11, M12, M14-M19",
+    "grade da pagina movel em 5 colunas, na ordem M01 a M19",
+    "ligacoes de prototipo moveis",
+    "gavetas de menu M20 a M22",
+    "entradas de perfil no navegavel e eliminacao das telas orfas (T09, T19, M09, M11, M12, M16, M17, M19)"
   ],
   "scriptsProntos": {
-    "pasta": "ong-conecta/docs/tcc/_figma-scripts",
+    "pasta": "docs/recursos/figma-scripts",
     "ordem": [
       "lote-A-T10-T14.mjs",
       "lote-B-T15-T19.mjs",
       "lote-C-movel.mjs",
       "lote-D-prototipo.mjs"
     ],
-    "observacao": "Lote D roda depois de A e B. Localiza telas por nome, nao por ID.",
+    "observacao": "Lote D roda depois de A e B. Localiza telas por nome, nao por ID. Os lotes sao o registro da construcao de 19/10; as telas moveis M02-M19 e as ligacoes moveis de 22/10 foram aplicadas direto por use_figma e nao tem lote salvo.",
     "validacao": "node check.mjs <arquivo> e node lint.mjs <arquivos> — ambos passaram em 19/10",
     "chamadasEstimadas": "4 de escrita + 3 a 4 capturas de tela"
   },
