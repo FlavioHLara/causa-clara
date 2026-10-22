@@ -1,0 +1,163 @@
+{
+  "runId": "tcc-prototipo-2026-10-19",
+  "fileKey": "stQ02xCuTeByDjDGdAT574",
+  "fileUrl": "https://www.figma.com/design/stQ02xCuTeByDjDGdAT574",
+  "sessionId": "413e11d4-b9aa-4b8b-9106-4cc14cd21895",
+  "step": "CONCLUIDO: 19 telas desktop + 5 moveis + 34 ligacoes + paleta roxa + marca Causa Clara aplicada",
+  "limitacoesDoPlano": {
+    "paginas": "maximo 3 — por isso Fundamentos e Componentes ficaram na mesma pagina",
+    "chamadasMCP": "limite atingido em 2026-10-19"
+  },
+  "entities": {
+    "pages": {
+      "Capa": "32:39",
+      "Componentes": "0:1",
+      "Telas · Desktop": "2:61",
+      "Telas · Móvel": "2:62"
+    },
+    "collections": {
+      "Primitivos": "VariableCollectionId:2:2",
+      "Cor": "VariableCollectionId:2:3",
+      "Espaçamento": "VariableCollectionId:2:4",
+      "Raio": "VariableCollectionId:2:5"
+    },
+    "cor": {
+      "cor/primaria": "VariableID:2:21",
+      "cor/primaria-pressionada": "VariableID:2:22",
+      "cor/primaria-suave": "VariableID:2:23",
+      "cor/texto/principal": "VariableID:2:24",
+      "cor/texto/secundario": "VariableID:2:25",
+      "cor/texto/apoio": "VariableID:2:26",
+      "cor/texto/sobre-primaria": "VariableID:2:27",
+      "cor/texto/acento": "VariableID:2:28",
+      "cor/borda/padrao": "VariableID:2:29",
+      "cor/borda/acento": "VariableID:2:30",
+      "cor/fundo/aplicacao": "VariableID:2:31",
+      "cor/fundo/superficie": "VariableID:2:32",
+      "cor/critico": "VariableID:2:33",
+      "cor/critico-suave": "VariableID:2:34",
+      "cor/critico-texto": "VariableID:2:35",
+      "cor/atencao": "VariableID:2:36",
+      "cor/atencao-suave": "VariableID:2:37",
+      "cor/atencao-texto": "VariableID:2:38",
+      "cor/entrada": "VariableID:2:39",
+      "cor/entrada-suave": "VariableID:2:40",
+      "cor/entrada-texto": "VariableID:2:41"
+    },
+    "esp": {
+      "4": "VariableID:2:42",
+      "8": "VariableID:2:43",
+      "12": "VariableID:2:44",
+      "16": "VariableID:2:45",
+      "24": "VariableID:2:46",
+      "32": "VariableID:2:47",
+      "48": "VariableID:2:48",
+      "64": "VariableID:2:49"
+    },
+    "raio": {
+      "campo": "VariableID:2:50",
+      "cartao": "VariableID:2:51",
+      "etiqueta": "VariableID:2:52"
+    },
+    "textStyles": {
+      "Título de tela": "S:6ed5a05709624b2f472916d27e5d227d56f2a606,",
+      "Título de seção": "S:a070e6ba5dbcea3b3ef7f3368ae4f48ac223c067,",
+      "Título de cartão": "S:e9eafd2af8830136a2b470934cc3b1c5755dc155,",
+      "Corpo": "S:8ab5a263dfdb10f27e9ebfcb23e31400475e9ffa,",
+      "Corpo forte": "S:4c64dce9bc4dc1a9ad4f4e783ef7686004c37dc8,",
+      "Apoio": "S:44df987ff794c67c8f62d4c9c841211f170e746a,",
+      "Rótulo de tabela": "S:f93f0275aebf356ca5b0602eb37f4869246648fe,",
+      "Indicador": "S:de24cb2c9175a600b0086b1da6e23b1f7ef912a5,"
+    },
+    "components": {
+      "Botão": "3:18",
+      "Campo de texto": "3:32",
+      "Etiqueta de situação": "3:51",
+      "Item de navegação": "4:8",
+      "Cartão de indicador": "4:9",
+      "Faixa de alerta": "4:22",
+      "Paginação": "4:23",
+      "Área de anexo": "4:39",
+      "Estado vazio": "4:40",
+      "Barra lateral": "4:110",
+      "Cabeçalho público": "4:111"
+    },
+    "telas": {
+      "T01 Acesso": "10:129",
+      "T02 Criar conta": "10:152",
+      "T03 Instituições": "10:203",
+      "T04 Perfil da instituição": "10:298",
+      "T05 Painel público de transparência": "12:129",
+      "T06 Meu painel": "14:158",
+      "T07 Registrar doação": "14:245",
+      "T08 Minhas doações": "14:302",
+      "T09 Primeiro acesso do gestor": "14:409",
+      "T10 Painel administrativo": "19:263",
+      "T11 Doacoes recebidas": "19:431",
+      "T12 Despesas": "19:554",
+      "T13 Itens de estoque": "19:682",
+      "T14 Movimentacao do item": "19:851",
+      "T15 Alertas": "20:540",
+      "T16 Membros e solicitacoes": "20:638",
+      "T17 Relatorios": "20:778",
+      "T18 Cadastro institucional": "20:953",
+      "T19 Categorias": "20:1043"
+    },
+    "telasMovel": {
+      "M01 Acesso": "21:39",
+      "M05 Transparencia": "21:62",
+      "M07 Registrar doacao": "21:118",
+      "M10 Painel administrativo": "21:153",
+      "M13 Itens de estoque": "21:215"
+    }
+  },
+  "licoesAprendidas": [
+    "resize() trava os dois eixos em FIXED: sempre restaurar primaryAxisSizingMode=AUTO (vertical) ou counterAxisSizingMode=AUTO (horizontal) depois, senao o container colapsa em 10px",
+    "counterAxisAlignItems aceita MIN/MAX/CENTER/BASELINE, nunca END",
+    "createNodeFromSvg ignora stroke-dasharray em circulos: desenhar rosca com setores anulares via caminhos de arco",
+    "erro em qualquer ponto do script reverte a transacao inteira, entao scripts grandes sao seguros para repetir"
+  ],
+  "completedSteps": [
+    "descoberta",
+    "fundamentos",
+    "componentes",
+    "telas T01-T09",
+    "paleta roxa",
+    "telas T10-T19",
+    "telas moveis",
+    "ligacoes de prototipo",
+    "polimento de alinhamento",
+    "marca Causa Clara",
+    "pagina de Capa",
+    "separacao de paginas"
+  ],
+  "scriptsProntos": {
+    "pasta": "ong-conecta/docs/tcc/_figma-scripts",
+    "ordem": [
+      "lote-A-T10-T14.mjs",
+      "lote-B-T15-T19.mjs",
+      "lote-C-movel.mjs",
+      "lote-D-prototipo.mjs"
+    ],
+    "observacao": "Lote D roda depois de A e B. Localiza telas por nome, nao por ID.",
+    "validacao": "node check.mjs <arquivo> e node lint.mjs <arquivos> — ambos passaram em 19/10",
+    "chamadasEstimadas": "4 de escrita + 3 a 4 capturas de tela"
+  },
+  "plano": "Professional, assento Full. 200 chamadas MCP/dia, paginas ilimitadas.",
+  "paletaAtual": {
+    "decisao": "Roxo, opcao B — tom claro como cor de acao com texto escuro",
+    "motivo": "Laranja colidia com a cor semantica de atencao (#B4530B). Branco sobre o roxo claro dava 3,15:1 e reprovava no AA.",
+    "roxo/300": "#8B86E8 (cor de acao, texto escuro, 5,65:1)",
+    "roxo/600": "#5B52C9 (acento, graficos, pressionado)",
+    "roxo/700": "#403A96 (texto sobre fundo claro, 9,28:1)",
+    "roxo/100": "#EDEBFB (fundo de selecao)",
+    "paraTrocarParaOpcaoA": "realiasar cor/primaria para roxo/600 e o texto do botao primario para cor/texto/sobre-primaria"
+  },
+  "produto": "Causa Clara",
+  "marca": {
+    "aplicada": "Causa Clara (2026-10-21)",
+    "trocas": "9 textos: 3 variantes da barra lateral, cabecalho publico, T01, M01, M05 e duas assinaturas",
+    "preservado": "Casa de Apoio Semear permanece como instituicao ficticia nos dados de exemplo — e dado de amostra, nao marca",
+    "pendente": "Renomear o ARQUIVO no Figma pela interface: a API nao permite (set_name nao suportado)"
+  }
+}

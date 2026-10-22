@@ -1,0 +1,1598 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Diagramas do Sistema</title>
+<style>
+:root{
+  --bg:#f6f7f9; --panel:#ffffff; --ink:#15181d; --ink-2:#4a515c; --ink-3:#7b8392;
+  --line:#d7dbe2; --line-2:#b9c0cb;
+  --accent:#2f6f4f; --accent-soft:#e7f1ec; --accent-ink:#1d4a35;
+  --uc:#f2f6ff; --uc-line:#9db4e0; --uc-ink:#24395e;
+  --ent-hdr:#2f6f4f; --pk:#b4530b; --fk:#2f6f4f; --enum:#6b4fa8;
+  --code-bg:#f2f3f5;
+  --radius:12px;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14161a; --panel:#1b1e24; --ink:#e8eaee; --ink-2:#aab2bf; --ink-3:#7f8795;
+    --line:#2c313a; --line-2:#3c434f;
+    --accent:#6fbf96; --accent-soft:#1d2b24; --accent-ink:#9ad8b6;
+    --uc:#1d2430; --uc-line:#55709e; --uc-ink:#bcd0f0;
+    --ent-hdr:#2b6a4c; --pk:#e0944f; --fk:#6fbf96; --enum:#b39ae0;
+    --code-bg:#12141a;
+  }
+}
+}
+:root[data-theme="dark"]{
+  --bg:#14161a; --panel:#1b1e24; --ink:#e8eaee; --ink-2:#aab2bf; --ink-3:#7f8795;
+  --line:#2c313a; --line-2:#3c434f;
+  --accent:#6fbf96; --accent-soft:#1d2b24; --accent-ink:#9ad8b6;
+  --uc:#1d2430; --uc-line:#55709e; --uc-ink:#bcd0f0;
+  --ent-hdr:#2b6a4c; --pk:#e0944f; --fk:#6fbf96; --enum:#b39ae0;
+  --code-bg:#12141a;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.55;
+  -webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:40px 16px 100px}
+header.top{margin-bottom:32px}
+.kicker{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:650;margin:0 0 10px}
+h1{font-size:clamp(26px,4vw,38px);line-height:1.15;margin:0 0 10px;letter-spacing:-.02em}
+.sub{color:var(--ink-2);font-size:16px;margin:0;max-width:72ch}
+.toc{display:flex;flex-wrap:wrap;gap:8px;margin:26px 0 0;padding:0;list-style:none}
+.toc a{display:inline-block;font-size:13px;text-decoration:none;color:var(--ink-2);
+  background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:6px 13px}
+.toc a:hover{border-color:var(--accent);color:var(--accent-ink)}
+section{margin:42px 0 0}
+h2{font-size:21px;margin:0 0 6px;letter-spacing:-.01em;scroll-margin-top:20px}
+h2 .num{color:var(--ink-3);font-variant-numeric:tabular-nums;margin-right:10px;font-weight:600}
+.lead{color:var(--ink-2);font-size:15px;margin:0 0 18px;max-width:78ch}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  padding:18px;overflow:hidden}
+.scroller{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
+.scroller svg{display:block;height:auto;max-width:100%;min-width:860px}
+.hint{font-size:12.5px;color:var(--ink-3);margin:10px 2px 0}
+/* legenda */
+.legend{display:flex;flex-wrap:wrap;gap:14px 22px;margin:0 0 16px;padding:14px 16px;
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);font-size:13px}
+.legend b{font-weight:600}
+.legend .it{display:flex;align-items:center;gap:8px;color:var(--ink-2)}
+.sw{width:30px;height:0;border-top:2px solid var(--ink-2);flex:none}
+.sw.dash{border-top-style:dashed}
+.sw.gen{border-top:2px solid var(--ink-2);position:relative}
+.sw.gen::after{content:"";position:absolute;right:-1px;top:-5px;width:0;height:0;
+  border:5px solid transparent;border-left-color:var(--ink-2)}
+.chip{display:inline-block;font:600 10.5px/1.4 var(--mono);padding:2px 6px;border-radius:5px;
+  border:1px solid var(--line-2);color:var(--ink-2)}
+.chip.pk{color:var(--pk);border-color:var(--pk)}
+.chip.fk{color:var(--fk);border-color:var(--fk)}
+.chip.en{color:var(--enum);border-color:var(--enum)}
+/* tabelas */
+.tbl{width:100%;border-collapse:collapse;font-size:13.5px}
+.tbl th{text-align:left;font-weight:650;font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--ink-3);border-bottom:1px solid var(--line-2);padding:0 12px 8px 0;white-space:nowrap}
+.tbl td{border-bottom:1px solid var(--line);padding:9px 12px 9px 0;vertical-align:top;color:var(--ink-2)}
+.tbl tr:last-child td{border-bottom:0}
+.tbl td code{font:500 12.5px var(--mono);color:var(--ink);background:var(--code-bg);
+  padding:1px 5px;border-radius:4px}
+.tbl td.nw{white-space:nowrap;color:var(--ink);font-variant-numeric:tabular-nums}
+.tbl td.rf{font:500 12.5px var(--mono);color:var(--accent-ink)}
+
+/* código */
+.codebox{position:relative;margin-top:14px}
+.opt{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;margin:0 0 14px}
+.opt h3{margin:0 0 8px;font-size:15.5px;letter-spacing:-.01em}
+.opt p{margin:0 0 9px;font-size:14px;color:var(--ink-2)}
+.opt p:last-child{margin-bottom:0}
+.opt code{font:500 12.5px var(--mono);background:var(--code-bg);padding:1px 5px;border-radius:4px;color:var(--ink)}
+.codebox pre{margin:0;background:var(--code-bg);border:1px solid var(--line);border-radius:10px;
+  padding:16px 16px;overflow:auto;max-height:440px;font:500 12.5px/1.65 var(--mono);color:var(--ink)}
+.codebox .bar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 8px}
+.codebox .fname{font:600 12px var(--mono);color:var(--ink-3)}
+button.copy{font:600 12px var(--sans);cursor:pointer;border:1px solid var(--line-2);
+  background:var(--panel);color:var(--ink-2);border-radius:7px;padding:5px 11px}
+button.copy:hover{border-color:var(--accent);color:var(--accent-ink)}
+button.copy.ok{border-color:var(--accent);color:var(--accent-ink);background:var(--accent-soft)}
+.note-box{background:var(--accent-soft);border:1px solid var(--accent);border-left-width:3px;
+  border-radius:8px;padding:13px 15px;font-size:13.5px;color:var(--ink-2);margin:14px 0 0}
+.note-box b{color:var(--ink)}
+ul.decis{margin:0;padding-left:20px;font-size:14px;color:var(--ink-2)}
+ul.decis li{margin:0 0 10px}
+ul.decis b{color:var(--ink)}
+footer{margin-top:60px;padding-top:20px;border-top:1px solid var(--line);
+  font-size:12.5px;color:var(--ink-3)}
+/* ---- SVG ---- */
+svg text{font-family:var(--sans)}
+.bd-box{fill:none;stroke:var(--line-2);stroke-width:1.5;stroke-dasharray:none}
+.bd-lb{fill:var(--ink-3);font-size:12.5px;font-weight:600;text-anchor:middle}
+.pkg-box{fill:none;stroke:var(--line);stroke-width:1.2;stroke-dasharray:5 4}
+.pkg-lb{fill:var(--ink-3);font-size:11.5px;font-weight:650;letter-spacing:.05em;text-transform:uppercase}
+.ac-line{stroke:var(--ink-2);stroke-width:1.7;fill:none}
+.ac-name{fill:var(--ink);font-size:13px;font-weight:650;text-anchor:middle}
+.ac-sub{fill:var(--ink-3);font-size:10.5px;font-style:italic;text-anchor:middle}
+.uc-sh{fill:var(--uc);stroke:var(--uc-line);stroke-width:1.4}
+.uc-id{fill:var(--uc-line);font:650 9.5px var(--mono);text-anchor:middle}
+.uc-tx{fill:var(--uc-ink);font-size:11.5px;text-anchor:middle}
+.assoc{stroke:var(--line-2);stroke-width:1.2;fill:none}
+.st-line{stroke:var(--ink-3);stroke-width:1.2;stroke-dasharray:6 4;fill:none}
+.st-lb{fill:var(--ink-3);font-size:9.5px;text-anchor:middle;font-style:italic}
+.gen{stroke:var(--ink-2);stroke-width:1.4;fill:none}
+.note{fill:var(--ink-3);font-size:10.5px;font-style:italic}
+.ent-box{fill:var(--panel);stroke:var(--line-2);stroke-width:1.3}
+.ent-hdr{fill:var(--ent-hdr)}
+.ent-t{fill:#fff;font:650 13px var(--mono)}
+.ent-a{fill:var(--ink-2);font:400 11.5px var(--mono)}
+.ent-a.k{fill:var(--ink);font-weight:650}
+.ent-b{font:650 9px var(--mono);text-anchor:end}
+.b-PK{fill:var(--pk)} .b-UK{fill:var(--pk)} .b-FK{fill:var(--fk)} .b-FKn{fill:var(--fk);opacity:.72}
+.b-ENUM{fill:var(--enum)}
+.rel-line{stroke:var(--line-2);stroke-width:1.3;fill:none}
+.rel-line.dash{stroke-dasharray:6 4}
+
+text.crd{fill:var(--ink-3);font:650 10.5px var(--mono)}
+@media print{
+  body{background:#fff}
+  .scroller svg{min-width:0}
+  .toc,button.copy{display:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <p class="kicker">TCC &middot; Modelagem do sistema</p>
+  <h1>Diagramas de Casos de Uso e Entidade-Relacionamento</h1>
+  <p class="sub">Derivados dos 81 requisitos funcionais, 46 não funcionais e 16 regras de negócio
+  definidos em <code>docs/tcc/01-requisitos.md</code>. Esta página serve como referência de leitura e
+  como insumo para refazer os diagramas em ferramenta própria &mdash; cada diagrama vem acompanhado do
+  código-fonte correspondente, pronto para colar.</p>
+  <ul class="toc">
+    <li><a href="#conv">Convenções</a></li>
+    <li><a href="#uc-a">Casos de uso &middot; Visitante e Apoiador</a></li>
+    <li><a href="#uc-b">Casos de uso &middot; Gestor</a></li>
+    <li><a href="#uc-src">Refazer na ferramenta</a></li>
+    <li><a href="#er">Diagrama ER</a></li>
+    <li><a href="#rels">Relacionamentos</a></li>
+    <li><a href="#er-src">Código Mermaid e DBML</a></li>
+    <li><a href="#trace">Rastreabilidade UC &rarr; RF</a></li>
+    <li><a href="#decis">Decisões de modelagem</a></li>
+  </ul>
+</header>
+
+<section>
+  <h2 id="conv"><span class="num">1</span>Convenções adotadas</h2>
+  <p class="lead">Os diagramas de caso de uso foram divididos por grupo de atores para caber de forma
+  legível. No diagrama do Gestor, a ligação do ator chega à borda do pacote: isso significa que o ator
+  acessa todos os casos de uso daquele pacote. Ao refazer na ferramenta, expanda em uma linha por caso
+  de uso &mdash; o código PlantUML da seção 4 já traz todas as associações expandidas.</p>
+  <p class="lead">A generalização entre atores segue uma regra única: ela só aparece quando as
+  capacidades de um ator são um superconjunto das do outro. É o caso de Apoiador sobre Visitante e de
+  Gestor Dono sobre Gestor Funcionário. Por isso não existe um ator abstrato intermediário.</p>
+  <div class="legend">
+    <span class="it"><span class="sw"></span><b>associação</b> ator &ndash; caso de uso</span>
+    <span class="it"><span class="sw dash"></span><b>«include» / «extend»</b></span>
+    <span class="it"><span class="sw gen"></span><b>generalização</b> de ator</span>
+    <span class="it"><span class="chip pk">PK</span> chave primária</span>
+    <span class="it"><span class="chip fk">FK</span> chave estrangeira</span>
+    <span class="it"><span class="chip fk" style="opacity:.72">FK?</span> estrangeira opcional</span>
+    <span class="it"><span class="chip pk">UK</span> única</span>
+    <span class="it"><span class="chip en">ENUM</span> domínio fechado</span>
+  </div>
+</section>
+
+<section>
+  <h2 id="uc-a"><span class="num">2</span>Casos de uso &middot; Visitante e Apoiador</h2>
+  <p class="lead">O Apoiador generaliza o Visitante: tudo que é público permanece acessível depois de
+  autenticado. O painel de transparência (UC08) é o único ponto do sistema que entrega dado financeiro
+  sem exigir conta, o que materializa o objetivo de accountability.</p>
+  <div class="card"><div class="scroller">
+    <svg viewBox="0 0 1120 760" role="img" aria-label="Diagrama de casos de uso: Visitante e Apoiador">
+      <defs>
+        <marker id="open" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10" fill="none" stroke="var(--ink-3)" stroke-width="1.4"/>
+        </marker>
+        <marker id="hollow" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="11" markerHeight="11" orient="auto-start-reverse">
+          <path d="M0 0 L12 6 L0 12 z" fill="var(--panel)" stroke="var(--ink-2)" stroke-width="1.3"/>
+        </marker>
+      </defs>
+      <g>
+    <rect class="bd-box" x="190" y="30" width="900" height="700" rx="10"/>
+    <text class="bd-lb" x="640" y="54">Sistema de Gestão Administrativa e Transparência Financeira</text>
+  </g>
+  <g class="pkg">
+    <rect class="pkg-box" x="220" y="70" width="300" height="330" rx="8"/>
+    <text class="pkg-lb" x="234" y="92">Acesso e Conta</text>
+  </g>
+  <g class="pkg">
+    <rect class="pkg-box" x="560" y="70" width="510" height="330" rx="8"/>
+    <text class="pkg-lb" x="574" y="92">Consulta Pública (sem autenticação)</text>
+  </g>
+  <g class="pkg">
+    <rect class="pkg-box" x="220" y="440" width="850" height="265" rx="8"/>
+    <text class="pkg-lb" x="234" y="462">Doações do Apoiador</text>
+  </g>
+  <line class="assoc" x1="110" y1="176" x2="255" y2="122"/>
+  <line class="assoc" x1="110" y1="176" x2="255" y2="192"/>
+  <line class="assoc" x1="110" y1="176" x2="585" y2="125"/>
+  <line class="assoc" x1="110" y1="176" x2="585" y2="205"/>
+  <line class="assoc" x1="110" y1="176" x2="585" y2="300"/>
+  <line class="assoc" x1="110" y1="506" x2="255" y2="252"/>
+  <line class="assoc" x1="110" y1="506" x2="255" y2="312"/>
+  <line class="assoc" x1="110" y1="506" x2="255" y2="368"/>
+  <line class="assoc" x1="110" y1="506" x2="260" y2="505"/>
+  <line class="assoc" x1="110" y1="506" x2="260" y2="635"/>
+  <line class="assoc" x1="110" y1="506" x2="825" y2="570"/>
+  <g class="st">
+    <line class="st-line" x1="845" y1="205" x2="790" y2="290" marker-end="url(#open)"/>
+    <text class="st-lb" x="817.5" y="241.5">«extend»</text>
+  </g>
+  <g class="st">
+    <line class="st-line" x1="845" y1="345" x2="790" y2="312" marker-end="url(#open)"/>
+    <text class="st-lb" x="817.5" y="322.5">«extend»</text>
+  </g>
+  <g class="st">
+    <line class="st-line" x1="550" y1="505" x2="490" y2="505" marker-end="url(#open)"/>
+    <text class="st-lb" x="520" y="499">«extend»</text>
+  </g>
+  <g class="st">
+    <line class="st-line" x1="550" y1="635" x2="490" y2="635" marker-end="url(#open)"/>
+    <text class="st-lb" x="520" y="629">«extend»</text>
+  </g>
+  <path class="gen" d="M90 450 L90 265" marker-end="url(#hollow)"/>
+  <text class="note" x="105" y="360">herda os casos de</text>
+  <text class="note" x="105" y="376">uso do Visitante</text>
+  <g class="actor">
+    <circle class="ac-line" cx="90" cy="150" r="14"/>
+    <line class="ac-line" x1="90" y1="164" x2="90" y2="200"/>
+    <line class="ac-line" x1="70" y1="176" x2="110" y2="176"/>
+    <line class="ac-line" x1="90" y1="200" x2="74" y2="228"/>
+    <line class="ac-line" x1="90" y1="200" x2="106" y2="228"/>
+    <text class="ac-name" x="90" y="248">Visitante</text>
+  </g>
+  <g class="actor">
+    <circle class="ac-line" cx="90" cy="480" r="14"/>
+    <line class="ac-line" x1="90" y1="494" x2="90" y2="530"/>
+    <line class="ac-line" x1="70" y1="506" x2="110" y2="506"/>
+    <line class="ac-line" x1="90" y1="530" x2="74" y2="558"/>
+    <line class="ac-line" x1="90" y1="530" x2="106" y2="558"/>
+    <text class="ac-name" x="90" y="578">Apoiador</text>
+  </g>
+  <g class="uc">
+    <ellipse class="uc-sh" cx="370" cy="122" rx="115" ry="28"/>
+    <text class="uc-id" x="370" y="107">UC01</text>
+    <text class="uc-tx"><tspan x="370" y="119">Criar conta</tspan><tspan x="370" y="134">(Apoiador ou Gestor)</tspan></text>
+  </g>
+  <g class="uc">
+    <ellipse class="uc-sh" cx="370" cy="192" rx="115" ry="28"/>
+    <text class="uc-id" x="370" y="177">UC02</text>
+    <text class="uc-tx"><tspan x="370" y="196">Autenticar-se</tspan></text>
+  </g>
+  <g class="uc">
+    <ellipse class="uc-sh" cx="370" cy="252" rx="115" ry="28"/>
+    <text class="uc-id" x="370" y="237">UC03</text>
+    <text class="uc-tx"><tspan x="370" y="249">Gerenciar dados</tspan><tspan x="370" y="264">do perfil</tspan></text>
+  </g>
+  <g class="uc">
+    <ellipse class="uc-sh" cx="370" cy="312" rx="115" ry="28"/>
+    <text class="uc-id" x="370" y="297">UC04</text>
+    <text class="uc-tx"><tspan x="370" y="316">Encerrar sessão</tspan></text>
+  </g>
+  <g class="uc">
+    <ellipse class="uc-sh" cx="370" cy="368" rx="115" ry="28"/>
+    <text class="uc-id" x="370" y="353">UC05</text>
+    <text class="uc-tx"><tspan x="370" y="372">Redefinir senha</tspan></text>
+  </g>
+  <g class="uc">
+    <ellipse class="uc-sh" cx="700" cy="125" rx="115" ry="28"/>
+    <text class="uc-id" x="700" y="110">UC06</text>
+    <text class="uc-tx"><tspan x="700" y="122">Consultar</tspan><tspan x="700" y="137">instituições</tspan></text>
+  </g>
+  <g class="uc">
+    <ellipse class="uc-sh" cx="700" cy="205" rx="115" ry="28"/>
+    <text class="uc-id" x="700" y="190">UC07</text>
+    <text class="uc-tx"><tspan x="700" y="202">Visualizar perfil</tspan><tspan x="700" y="217">da instituição</tspan></text>
+  </g>
+  <g class="uc">
+    <ellipse class="uc-sh" cx="700" cy="300" rx="115" ry="28"/>
+    <text class="uc-id" x="700" y="285">UC08</text>
+    <text class="uc-tx"><tspan x="700" y="297">Consultar painel</tspan><tspan x="700" y="312">de transparência</tspan></text>
+  </g>
+  <g class="uc">
+    <ellipse class="uc-sh" cx="950" cy="205" rx="105" ry="28"/>
+    <text class="uc-id" x="950" y="190">UC09</text>
+    <text class="uc-tx"><tspan x="950" y="202">Filtrar por período</tspan><tspan x="950" y="217">e categoria</tspan></text>
+  </g>
+  <g class="uc">
+    <ellipse class="uc-sh" cx="950" cy="345" rx="105" ry="28"/>
+    <text class="uc-id" x="950" y="330">UC10</text>
+    <text class="uc-tx"><tspan x="950" y="342">Exportar dados</tspan><tspan x="950" y="357">(CSV / PDF)</tspan></text>
+  </g>
+  <g class="uc">
+    <ellipse class="uc-sh" cx="375" cy="505" rx="115" ry="28"/>
+    <text class="uc-id" x="375" y="490">UC11</text>
+    <text class="uc-tx"><tspan x="375" y="502">Registrar doação</tspan><tspan x="375" y="517">(financeira ou material)</tspan></text>
+  </g>
+  <g class="uc">
+    <ellipse class="uc-sh" cx="655" cy="505" rx="105" ry="28"/>
+    <text class="uc-id" x="655" y="490">UC12</text>
+    <text class="uc-tx"><tspan x="655" y="502">Definir anonimato</tspan><tspan x="655" y="517">da doação</tspan></text>
+  </g>
+  <g class="uc">
+    <ellipse class="uc-sh" cx="375" cy="635" rx="115" ry="28"/>
+    <text class="uc-id" x="375" y="620">UC13</text>
+    <text class="uc-tx"><tspan x="375" y="632">Consultar histórico</tspan><tspan x="375" y="647">de doações</tspan></text>
+  </g>
+  <g class="uc">
+    <ellipse class="uc-sh" cx="655" cy="635" rx="105" ry="28"/>
+    <text class="uc-id" x="655" y="620">UC14</text>
+    <text class="uc-tx"><tspan x="655" y="632">Emitir comprovante</tspan><tspan x="655" y="647">(PDF)</tspan></text>
+  </g>
+  <g class="uc">
+    <ellipse class="uc-sh" cx="935" cy="570" rx="110" ry="28"/>
+    <text class="uc-id" x="935" y="555">UC15</text>
+    <text class="uc-tx"><tspan x="935" y="567">Visualizar painel</tspan><tspan x="935" y="582">de contribuições</tspan></text>
+  </g>
+    </svg>
+  </div>
+  <p class="hint">Arraste na horizontal se a imagem estiver cortada.</p></div>
+</section>
+
+<section>
+  <h2 id="uc-b"><span class="num">3</span>Casos de uso &middot; Gestor</h2>
+  <p class="lead">O Gestor Dono generaliza o Gestor Funcionário: faz tudo que o Funcionário faz e
+  acrescenta quatro casos de uso exclusivos (UC16, UC18, UC19, UC20), que recebem ligação própria.
+  UC16 e UC17 são as duas portas de entrada mutuamente excludentes &mdash; quem cria a instituição
+  passa a ser Dono, quem solicita acesso passa a ser Funcionário &mdash; e ambas têm como
+  pré-condição o gestor ainda não possuir vínculo aprovado (RF16, RN02).</p>
+  <div class="card"><div class="scroller">
+    <svg viewBox="0 0 1240 1600" role="img" aria-label="Diagrama de casos de uso: Gestor">
+      <g>
+    <rect class="bd-box" x="200" y="30" width="1010" height="1540" rx="10"/>
+    <text class="bd-lb" x="705" y="54">Sistema de Gestão Administrativa e Transparência Financeira</text>
+  </g>
+  <g class="pkg">
+    <rect class="pkg-box" x="230" y="70" width="700" height="330" rx="8"/>
+    <text class="pkg-lb" x="244" y="92">Vínculo Institucional</text>
+  </g>
+  <g class="pkg">
+    <rect class="pkg-box" x="230" y="450" width="460" height="200" rx="8"/>
+    <text class="pkg-lb" x="244" y="472">Receitas</text>
+  </g>
+  <g class="pkg">
+    <rect class="pkg-box" x="730" y="450" width="460" height="260" rx="8"/>
+    <text class="pkg-lb" x="744" y="472">Despesas e Comprovantes</text>
+  </g>
+  <g class="pkg">
+    <rect class="pkg-box" x="230" y="750" width="960" height="440" rx="8"/>
+    <text class="pkg-lb" x="244" y="772">Estoque e Bens Patrimoniais</text>
+  </g>
+  <g class="pkg">
+    <rect class="pkg-box" x="230" y="1230" width="960" height="320" rx="8"/>
+    <text class="pkg-lb" x="244" y="1252">Painéis e Prestação de Contas</text>
+  </g>
+  <line class="assoc" x1="116" y1="136" x2="285" y2="120"/>
+  <line class="assoc" x1="116" y1="136" x2="285" y2="200"/>
+  <line class="assoc" x1="116" y1="136" x2="285" y2="280"/>
+  <line class="assoc" x1="116" y1="136" x2="285" y2="360"/>
+  <polyline class="assoc" points="116,420 165,420 165,1385"/>
+  <line class="assoc" x1="165" y1="550" x2="230" y2="550"/>
+  <line class="assoc" x1="165" y1="980" x2="230" y2="980"/>
+  <line class="assoc" x1="165" y1="1385" x2="230" y2="1385"/>
+  <polyline class="assoc" points="165,730 730,730 730,710"/>
+  <polyline class="assoc" points="116,420 700,420 700,328"/>
+  <path class="gen" d="M96 224 L96 374" marker-end="url(#hollow)"/>
+  <text class="note" x="112" y="300">Dono faz tudo que o</text>
+  <text class="note" x="112" y="315">Funcionário faz, e mais</text>
+  <g class="st">
+    <line class="st-line" x1="610" y1="190" x2="528" y2="262" marker-end="url(#open)"/>
+    <text class="st-lb" x="569" y="220">«extend»</text>
+  </g>
+  <g class="st">
+    <line class="st-line" x1="985" y1="492" x2="960" y2="508" marker-end="url(#open)"/>
+    <text class="st-lb" x="972.5" y="494">«include»</text>
+  </g>
+  <g class="st">
+    <line class="st-line" x1="985" y1="588" x2="955" y2="526" marker-end="url(#open)"/>
+    <text class="st-lb" x="970" y="551">«extend»</text>
+  </g>
+  <g class="st">
+    <line class="st-line" x1="595" y1="965" x2="505" y2="1025" marker-end="url(#open)"/>
+    <text class="st-lb" x="550" y="989">«include»</text>
+  </g>
+  <g class="st">
+    <line class="st-line" x1="595" y1="1060" x2="510" y2="1045" marker-end="url(#open)"/>
+    <text class="st-lb" x="552.5" y="1046.5">«extend»</text>
+  </g>
+  <g class="st">
+    <line class="st-line" x1="590" y1="1152" x2="500" y2="1060" marker-end="url(#open)"/>
+    <text class="st-lb" x="545" y="1100">«extend»</text>
+  </g>
+  <g class="st">
+    <line class="st-line" x1="600" y1="1438" x2="510" y2="1400" marker-end="url(#open)"/>
+    <text class="st-lb" x="555" y="1413">«extend»</text>
+  </g>
+  <g class="st">
+    <line class="st-line" x1="600" y1="1460" x2="510" y2="1490" marker-end="url(#open)"/>
+    <text class="st-lb" x="555" y="1469">«extend»</text>
+  </g>
+  <text class="note" x="885" y="1362">«include» por UC22, UC24,</text>
+  <text class="note" x="885" y="1378">UC25, UC30 (toda escrita)</text>
+  <text class="note" x="560" y="372">pré-condição de UC16 e UC17: o gestor</text>
+  <text class="note" x="560" y="387">ainda não possui vínculo aprovado (RF16, RN02)</text>
+  <g class="actor">
+    <circle class="ac-line" cx="96" cy="110" r="14"/>
+    <line class="ac-line" x1="96" y1="124" x2="96" y2="160"/>
+    <line class="ac-line" x1="76" y1="136" x2="116" y2="136"/>
+    <line class="ac-line" x1="96" y1="160" x2="80" y2="188"/>
+    <line class="ac-line" x1="96" y1="160" x2="112" y2="188"/>
+    <text class="ac-name" x="96" y="208">Gestor Dono</text>
+  </g>
+  <g class="actor">
+    <circle class="ac-line" cx="96" cy="394" r="14"/>
+    <line class="ac-line" x1="96" y1="408" x2="96" y2="444"/>
+    <line class="ac-line" x1="76" y1="420" x2="116" y2="420"/>
+    <line class="ac-line" x1="96" y1="444" x2="80" y2="472"/>
+    <line class="ac-line" x1="96" y1="444" x2="112" y2="472"/>
+    <text class="ac-name" x="96" y="492">Gestor Funcionário</text>
+  </g>
+  <g class="uc">
+    <ellipse class="uc-sh" cx="400" cy="120" rx="115" ry="28"/>
+    <text class="uc-id" x="400" y="105">UC16</text>
+    <text class="uc-tx"><tspan x="400" y="124">Criar instituição</tspan></text>
+  </g>
+  <g class="uc">
+    <ellipse class="uc-sh" cx="400" cy="200" rx="115" ry="28"/>
+    <text class="uc-id" x="400" y="185">UC18</text>
+    <text class="uc-tx"><tspan x="400" y="197">Gerenciar cadastro</tspan><tspan x="400" y="212">institucional</tspan></text>
+  </g>
+  <g class="uc">
+    <ellipse class="uc-sh" cx="400" cy="280" rx="115" ry="28"/>
+    <text class="uc-id" x="400" y="265">UC19</text>
+    <text class="uc-tx"><tspan x="400" y="277">Avaliar solicitações</tspan><tspan x="400" y="292">de vínculo</tspan></text>
+  </g>
+  <g class="uc">
+    <ellipse class="uc-sh" cx="400" cy="360" rx="115" ry="28"/>
+    <text class="uc-id" x="400" y="345">UC20</text>
+    <text class="uc-tx"><tspan x="400" y="357">Revogar vínculo</tspan><tspan x="400" y="372">de membro</tspan></text>
+  </g>
+  <g class="uc">
+    <ellipse class="uc-sh" cx="700" cy="170" rx="100" ry="28"/>
+    <text class="uc-id" x="700" y="155">UC21</text>
+    <text class="uc-tx"><tspan x="700" y="167">Notificar</tspan><tspan x="700" y="182">solicitante</tspan></text>
+  </g>
+  <g class="uc">
+    <ellipse class="uc-sh" cx="700" cy="300" rx="115" ry="28"/>
+    <text class="uc-id" x="700" y="285">UC17</text>
+    <text class="uc-tx"><tspan x="700" y="297">Solicitar acesso a</tspan><tspan x="700" y="312">uma instituição</tspan></text>
+  </g>
+  <g class="uc">
+    <ellipse class="uc-sh" cx="420" cy="512" rx="115" ry="28"/>
+    <text class="uc-id" x="420" y="497">UC22</text>
+    <text class="uc-tx"><tspan x="420" y="509">Registrar doação</tspan><tspan x="420" y="524">recebida</tspan></text>
+  </g>
+  <g class="uc">
+    <ellipse class="uc-sh" cx="420" cy="602" rx="115" ry="28"/>
+    <text class="uc-id" x="420" y="587">UC23</text>
+    <text class="uc-tx"><tspan x="420" y="599">Gerenciar doações</tspan><tspan x="420" y="614">recebidas</tspan></text>
+  </g>
+  <g class="uc">
+    <ellipse class="uc-sh" cx="855" cy="508" rx="105" ry="28"/>
+    <text class="uc-id" x="855" y="493">UC24</text>
+    <text class="uc-tx"><tspan x="855" y="512">Registrar despesa</tspan></text>
+  </g>
+  <g class="uc">
+    <ellipse class="uc-sh" cx="855" cy="652" rx="105" ry="28"/>
+    <text class="uc-id" x="855" y="637">UC25</text>
+    <text class="uc-tx"><tspan x="855" y="656">Gerenciar despesas</tspan></text>
+  </g>
+  <g class="uc">
+    <ellipse class="uc-sh" cx="1080" cy="492" rx="95" ry="28"/>
+    <text class="uc-id" x="1080" y="477">UC26</text>
+    <text class="uc-tx"><tspan x="1080" y="489">Anexar</tspan><tspan x="1080" y="504">comprovante</tspan></text>
+  </g>
+  <g class="uc">
+    <ellipse class="uc-sh" cx="1080" cy="588" rx="95" ry="28"/>
+    <text class="uc-id" x="1080" y="573">UC27</text>
+    <text class="uc-tx"><tspan x="1080" y="585">Vincular despesa</tspan><tspan x="1080" y="600">à doação</tspan></text>
+  </g>
+  <g class="uc">
+    <ellipse class="uc-sh" cx="395" cy="815" rx="115" ry="28"/>
+    <text class="uc-id" x="395" y="800">UC28</text>
+    <text class="uc-tx"><tspan x="395" y="812">Gerenciar categorias</tspan><tspan x="395" y="827">de itens</tspan></text>
+  </g>
+  <g class="uc">
+    <ellipse class="uc-sh" cx="395" cy="908" rx="115" ry="28"/>
+    <text class="uc-id" x="395" y="893">UC29</text>
+    <text class="uc-tx"><tspan x="395" y="905">Gerenciar itens</tspan><tspan x="395" y="920">de estoque</tspan></text>
+  </g>
+  <g class="uc">
+    <ellipse class="uc-sh" cx="395" cy="1040" rx="115" ry="28"/>
+    <text class="uc-id" x="395" y="1025">UC30</text>
+    <text class="uc-tx"><tspan x="395" y="1037">Registrar movimentação</tspan><tspan x="395" y="1052">(entrada / saída)</tspan></text>
+  </g>
+  <g class="uc">
+    <ellipse class="uc-sh" cx="700" cy="965" rx="105" ry="28"/>
+    <text class="uc-id" x="700" y="950">UC31</text>
+    <text class="uc-tx"><tspan x="700" y="962">Atualizar saldo</tspan><tspan x="700" y="977">do item</tspan></text>
+  </g>
+  <g class="uc">
+    <ellipse class="uc-sh" cx="700" cy="1060" rx="105" ry="28"/>
+    <text class="uc-id" x="700" y="1045">UC32</text>
+    <text class="uc-tx"><tspan x="700" y="1057">Gerar alerta de</tspan><tspan x="700" y="1072">estoque crítico</tspan></text>
+  </g>
+  <g class="uc">
+    <ellipse class="uc-sh" cx="700" cy="1152" rx="110" ry="28"/>
+    <text class="uc-id" x="700" y="1137">UC33</text>
+    <text class="uc-tx"><tspan x="700" y="1149">Converter doação</tspan><tspan x="700" y="1164">material em entrada</tspan></text>
+  </g>
+  <g class="uc">
+    <ellipse class="uc-sh" cx="1000" cy="840" rx="110" ry="28"/>
+    <text class="uc-id" x="1000" y="825">UC34</text>
+    <text class="uc-tx"><tspan x="1000" y="837">Consultar movimentações</tspan><tspan x="1000" y="852">e relatório</tspan></text>
+  </g>
+  <g class="uc">
+    <ellipse class="uc-sh" cx="1000" cy="945" rx="110" ry="28"/>
+    <text class="uc-id" x="1000" y="930">UC35</text>
+    <text class="uc-tx"><tspan x="1000" y="942">Consultar alertas</tspan><tspan x="1000" y="957">e marcar como lido</tspan></text>
+  </g>
+  <g class="uc">
+    <ellipse class="uc-sh" cx="395" cy="1295" rx="115" ry="28"/>
+    <text class="uc-id" x="395" y="1280">UC36</text>
+    <text class="uc-tx"><tspan x="395" y="1292">Visualizar painel</tspan><tspan x="395" y="1307">administrativo</tspan></text>
+  </g>
+  <g class="uc">
+    <ellipse class="uc-sh" cx="395" cy="1395" rx="115" ry="28"/>
+    <text class="uc-id" x="395" y="1380">UC37</text>
+    <text class="uc-tx"><tspan x="395" y="1399">Gerar relatórios</tspan></text>
+  </g>
+  <g class="uc">
+    <ellipse class="uc-sh" cx="395" cy="1495" rx="115" ry="28"/>
+    <text class="uc-id" x="395" y="1480">UC38</text>
+    <text class="uc-tx"><tspan x="395" y="1492">Gerar demonstrativo de</tspan><tspan x="395" y="1507">prestação de contas</tspan></text>
+  </g>
+  <g class="uc">
+    <ellipse class="uc-sh" cx="700" cy="1445" rx="100" ry="28"/>
+    <text class="uc-id" x="700" y="1430">UC39</text>
+    <text class="uc-tx"><tspan x="700" y="1442">Exportar</tspan><tspan x="700" y="1457">(CSV / PDF)</tspan></text>
+  </g>
+  <g class="uc">
+    <ellipse class="uc-sh" cx="1000" cy="1320" rx="105" ry="28"/>
+    <text class="uc-id" x="1000" y="1305">UC40</text>
+    <text class="uc-tx"><tspan x="1000" y="1317">Registrar trilha</tspan><tspan x="1000" y="1332">de auditoria</tspan></text>
+  </g>
+    </svg>
+  </div>
+  <p class="hint">Arraste na horizontal se a imagem estiver cortada.</p></div>
+  <div class="note-box"><b>Por que UC31 e UC32 são casos de uso separados.</b> Atualizar o saldo é
+  «include» porque acontece sempre que há movimentação (RF53); gerar alerta é «extend» porque
+  acontece apenas na condição de o saldo cruzar a quantidade mínima (RF60, RN14). Essa distinção entre
+  fluxo obrigatório e fluxo condicional é exatamente o que a banca procura em um diagrama de casos de uso.</div>
+</section>
+
+<section>
+  <h2 id="uc-src"><span class="num">4</span>Como refazer os diagramas na ferramenta</h2>
+  <p class="lead">Três caminhos, do mais recomendado ao mais rápido. Todos partem exatamente do mesmo
+  modelo apresentado acima.</p>
+
+  <div class="opt">
+    <h3>1. draw.io &mdash; recomendado</h3>
+    <p>Abra <code>app.diagrams.net</code> e use <b>Arquivo &rsaquo; Abrir de &rsaquo; Dispositivo</b> para
+    carregar o arquivo <code>diagramas.drawio</code> que acompanha esta página. Ele traz três abas:
+    os dois diagramas de caso de uso e o modelo ER.</p>
+    <p>As formas usam notação UML nativa da ferramenta e as arestas estão <b>conectadas às formas</b>,
+    não desenhadas por coordenada &mdash; arraste um caso de uso e as linhas se reposicionam sozinhas.
+    Exporta em PNG, SVG ou PDF com fundo transparente, pelo menu <b>Arquivo &rsaquo; Exportar como</b>.
+    É gratuito, roda no navegador e não exige conta.</p>
+  </div>
+
+  <div class="opt">
+    <h3>2. PlantUML &mdash; se preferir manter o diagrama como código</h3>
+    <p>Os dois blocos abaixo já vêm com tema aplicado e <b>separados por grupo de atores</b>, o que
+    melhora bastante em relação ao diagrama único com os 40 casos de uso. Cole em
+    <code>plantuml.com/plantuml</code> ou na extensão PlantUML do VS Code.</p>
+    <p><b>Ressalva honesta:</b> mesmo assim o diagrama do Gestor continua mediano. O algoritmo de
+    layout posiciona o ator fora do retângulo do sistema e traça linhas longas e curvas até os quatro
+    pacotes. As alternativas de arranjo pioram: <code>top to bottom direction</code> gera uma imagem
+    de 4091&nbsp;&times;&nbsp;724&nbsp;px e, com <code>linetype ortho</code>,
+    3917&nbsp;&times;&nbsp;647&nbsp;px &mdash; larguras inviáveis numa página A4. A versão mantida
+    abaixo, de 1358&nbsp;&times;&nbsp;2528&nbsp;px, é a de proporção mais aproveitável.</p>
+    <p>Se quiser mesmo permanecer no PlantUML com boa aparência, o caminho é gerar <b>um diagrama por
+    pacote</b>: com seis a oito casos de uso cada, o layout se comporta bem. O custo é ocupar mais
+    espaço no artigo.</p>
+  </div>
+
+  <div class="codebox">
+    <div class="bar"><span class="fname">estilo.puml &nbsp;&middot;&nbsp; incluído nos dois blocos</span>
+      <button class="copy" data-t="pstyle">Copiar</button></div>
+    <pre id="pstyle">' ---- estilo comum aos dois diagramas ----
+skinparam backgroundColor transparent
+skinparam shadowing false
+skinparam defaultFontName Segoe UI
+skinparam defaultFontSize 13
+skinparam packageStyle rectangle
+skinparam ArrowColor #8A93A2
+skinparam ArrowFontColor #7B8392
+skinparam ArrowFontSize 11
+skinparam ArrowFontStyle italic
+skinparam actor {
+  BorderColor #2F6F4F
+  BackgroundColor #FFFFFF
+  FontColor #15181D
+  FontStyle bold
+}
+skinparam usecase {
+  BorderColor #9DB4E0
+  BackgroundColor #F2F6FF
+  FontColor #24395E
+  BorderThickness 1.2
+}
+skinparam rectangle {
+  BorderColor #B9C0CB
+  BackgroundColor transparent
+  FontColor #7B8392
+  FontSize 12
+  FontStyle bold
+}
+skinparam note {
+  BorderColor #2F6F4F
+  BackgroundColor #E7F1EC
+  FontColor #1D4A35
+  FontSize 11
+}</pre>
+  </div>
+  <div class="codebox">
+    <div class="bar"><span class="fname">casos-de-uso-apoiador.puml</span>
+      <button class="copy" data-t="pumlA">Copiar</button></div>
+    <pre id="pumlA">@startuml casos-de-uso-apoiador
+left to right direction
+' ---- estilo comum aos dois diagramas ----
+skinparam backgroundColor transparent
+skinparam shadowing false
+skinparam defaultFontName Segoe UI
+skinparam defaultFontSize 13
+skinparam packageStyle rectangle
+skinparam ArrowColor #8A93A2
+skinparam ArrowFontColor #7B8392
+skinparam ArrowFontSize 11
+skinparam ArrowFontStyle italic
+skinparam actor {
+  BorderColor #2F6F4F
+  BackgroundColor #FFFFFF
+  FontColor #15181D
+  FontStyle bold
+}
+skinparam usecase {
+  BorderColor #9DB4E0
+  BackgroundColor #F2F6FF
+  FontColor #24395E
+  BorderThickness 1.2
+}
+skinparam rectangle {
+  BorderColor #B9C0CB
+  BackgroundColor transparent
+  FontColor #7B8392
+  FontSize 12
+  FontStyle bold
+}
+skinparam note {
+  BorderColor #2F6F4F
+  BackgroundColor #E7F1EC
+  FontColor #1D4A35
+  FontSize 11
+}
+
+actor "Visitante" as V
+actor "Apoiador" as A
+A --|&gt; V
+
+rectangle "Sistema de Gestao Administrativa e Transparencia Financeira" {
+
+  package "Acesso e Conta" {
+    usecase "UC01\nCriar conta\n(Apoiador ou Gestor)" as UC01
+    usecase "UC02\nAutenticar-se" as UC02
+    usecase "UC03\nGerenciar dados\ndo perfil" as UC03
+    usecase "UC04\nEncerrar sessao" as UC04
+    usecase "UC05\nRedefinir senha" as UC05
+  }
+
+  package "Consulta Publica" {
+    usecase "UC06\nConsultar\ninstituicoes" as UC06
+    usecase "UC07\nVisualizar perfil\nda instituicao" as UC07
+    usecase "UC08\nConsultar painel\nde transparencia" as UC08
+    usecase "UC09\nFiltrar por periodo\ne categoria" as UC09
+    usecase "UC10\nExportar dados\n(CSV / PDF)" as UC10
+  }
+
+  package "Doacoes do Apoiador" {
+    usecase "UC11\nRegistrar doacao\n(financeira ou material)" as UC11
+    usecase "UC12\nDefinir anonimato\nda doacao" as UC12
+    usecase "UC13\nConsultar historico\nde doacoes" as UC13
+    usecase "UC14\nEmitir comprovante\n(PDF)" as UC14
+    usecase "UC15\nVisualizar painel\nde contribuicoes" as UC15
+  }
+}
+
+V -- UC01
+V -- UC02
+V -- UC06
+V -- UC07
+V -- UC08
+
+A -- UC03
+A -- UC04
+A -- UC05
+A -- UC11
+A -- UC13
+A -- UC15
+
+UC09 ..&gt; UC08 : &lt;&lt;extend&gt;&gt;
+UC10 ..&gt; UC08 : &lt;&lt;extend&gt;&gt;
+UC12 ..&gt; UC11 : &lt;&lt;extend&gt;&gt;
+UC14 ..&gt; UC13 : &lt;&lt;extend&gt;&gt;
+
+note right of V
+  O Apoiador herda todos os
+  casos de uso do Visitante.
+end note
+@enduml</pre>
+  </div>
+  <div class="codebox">
+    <div class="bar"><span class="fname">casos-de-uso-gestor.puml</span>
+      <button class="copy" data-t="pumlB">Copiar</button></div>
+    <pre id="pumlB">@startuml casos-de-uso-gestor
+left to right direction
+' ---- estilo comum aos dois diagramas ----
+skinparam backgroundColor transparent
+skinparam shadowing false
+skinparam defaultFontName Segoe UI
+skinparam defaultFontSize 13
+skinparam packageStyle rectangle
+skinparam ArrowColor #8A93A2
+skinparam ArrowFontColor #7B8392
+skinparam ArrowFontSize 11
+skinparam ArrowFontStyle italic
+skinparam actor {
+  BorderColor #2F6F4F
+  BackgroundColor #FFFFFF
+  FontColor #15181D
+  FontStyle bold
+}
+skinparam usecase {
+  BorderColor #9DB4E0
+  BackgroundColor #F2F6FF
+  FontColor #24395E
+  BorderThickness 1.2
+}
+skinparam rectangle {
+  BorderColor #B9C0CB
+  BackgroundColor transparent
+  FontColor #7B8392
+  FontSize 12
+  FontStyle bold
+}
+skinparam note {
+  BorderColor #2F6F4F
+  BackgroundColor #E7F1EC
+  FontColor #1D4A35
+  FontSize 11
+}
+
+actor "Gestor Funcionario" as GF
+actor "Gestor Dono" as GD
+GD --|&gt; GF
+
+rectangle "Sistema de Gestao Administrativa e Transparencia Financeira" {
+
+  package "Vinculo Institucional" {
+    usecase "UC16\nCriar instituicao" as UC16
+    usecase "UC17\nSolicitar acesso a\numa instituicao" as UC17
+    usecase "UC18\nGerenciar cadastro\ninstitucional" as UC18
+    usecase "UC19\nAvaliar solicitacoes\nde vinculo" as UC19
+    usecase "UC20\nRevogar vinculo\nde membro" as UC20
+    usecase "UC21\nNotificar\nsolicitante" as UC21
+  }
+
+  package "Receitas" {
+    usecase "UC22\nRegistrar doacao\nrecebida" as UC22
+    usecase "UC23\nGerenciar doacoes\nrecebidas" as UC23
+  }
+
+  package "Despesas e Comprovantes" {
+    usecase "UC24\nRegistrar despesa" as UC24
+    usecase "UC25\nGerenciar despesas" as UC25
+    usecase "UC26\nAnexar comprovante" as UC26
+    usecase "UC27\nVincular despesa\na doacao" as UC27
+  }
+
+  package "Estoque e Bens Patrimoniais" {
+    usecase "UC28\nGerenciar categorias\nde itens" as UC28
+    usecase "UC29\nGerenciar itens\nde estoque" as UC29
+    usecase "UC30\nRegistrar movimentacao\n(entrada / saida)" as UC30
+    usecase "UC31\nAtualizar saldo\ndo item" as UC31
+    usecase "UC32\nGerar alerta de\nestoque critico" as UC32
+    usecase "UC33\nConverter doacao\nmaterial em entrada" as UC33
+    usecase "UC34\nConsultar movimentacoes\ne relatorio" as UC34
+    usecase "UC35\nConsultar alertas\ne marcar como lido" as UC35
+  }
+
+  package "Paineis e Prestacao de Contas" {
+    usecase "UC36\nVisualizar painel\nadministrativo" as UC36
+    usecase "UC37\nGerar relatorios" as UC37
+    usecase "UC38\nGerar demonstrativo de\nprestacao de contas" as UC38
+    usecase "UC39\nExportar\n(CSV / PDF)" as UC39
+    usecase "UC40\nRegistrar trilha\nde auditoria" as UC40
+  }
+}
+
+GD -- UC16
+GD -- UC18
+GD -- UC19
+GD -- UC20
+
+GF -- UC17
+GF -- UC22
+GF -- UC23
+GF -- UC24
+GF -- UC25
+GF -- UC28
+GF -- UC29
+GF -- UC30
+GF -- UC34
+GF -- UC35
+GF -- UC36
+GF -- UC37
+GF -- UC38
+GF -- UC39
+
+UC21 ..&gt; UC19 : &lt;&lt;extend&gt;&gt;
+UC26 ..&gt; UC24 : &lt;&lt;include&gt;&gt;
+UC27 ..&gt; UC24 : &lt;&lt;extend&gt;&gt;
+UC31 ..&gt; UC30 : &lt;&lt;include&gt;&gt;
+UC32 ..&gt; UC30 : &lt;&lt;extend&gt;&gt;
+UC33 ..&gt; UC30 : &lt;&lt;extend&gt;&gt;
+UC39 ..&gt; UC37 : &lt;&lt;extend&gt;&gt;
+UC39 ..&gt; UC38 : &lt;&lt;extend&gt;&gt;
+UC40 ..&gt; UC22 : &lt;&lt;include&gt;&gt;
+UC40 ..&gt; UC24 : &lt;&lt;include&gt;&gt;
+UC40 ..&gt; UC25 : &lt;&lt;include&gt;&gt;
+UC40 ..&gt; UC30 : &lt;&lt;include&gt;&gt;
+
+note bottom of UC16
+  Pre-condicao de UC16 e UC17: o gestor ainda
+  nao possui vinculo aprovado (RF16, RN02).
+  Quem executa UC16 passa a ser Dono;
+  quem executa UC17 passa a ser Funcionario.
+end note
+
+note right of GD
+  O Gestor Dono executa todos os casos
+  de uso do Gestor Funcionario e
+  acrescenta UC16, UC18, UC19 e UC20.
+end note
+@enduml</pre>
+  </div>
+
+  <div class="opt">
+    <h3>3. dbdiagram.io &mdash; só para o modelo ER</h3>
+    <p>Para o diagrama de entidades, esta é a melhor saída visual com menos esforço: cole o DBML da
+    seção 7 em <code>dbdiagram.io</code> e o layout sai pronto, com as cardinalidades corretas e
+    exportação em PNG, PDF ou SQL. Não serve para casos de uso.</p>
+  </div>
+
+  <div class="note-box"><b>Sobre o SVG desta página.</b> Os diagramas exibidos acima também são
+  arquivos vetoriais: clicando com o botão direito em cada um é possível salvar a imagem, e a página
+  inteira imprime em PDF com os diagramas em qualidade de vetor. Serve se você quiser usar como está,
+  sem passar por ferramenta nenhuma.</div>
+</section>
+
+<section>
+  <h2 id="er"><span class="num">5</span>Diagrama Entidade-Relacionamento</h2>
+  <p class="lead">Dez entidades. As quatro fundações são <code>usuarios</code>, <code>instituicoes</code>,
+  <code>categorias</code> e <code>membros_instituicao</code> &mdash; esta última é a tabela associativa que
+  resolve o vínculo com papel e situação. Toda entidade transacional carrega <code>instituicao_id</code>,
+  o que sustenta o isolamento exigido por RN05 e RNF16.</p>
+  <div class="card"><div class="scroller">
+    <svg viewBox="0 0 1300 1160" role="img" aria-label="Diagrama entidade-relacionamento">
+      
+  <g class="rel">
+    <path class="rel-line" d="M180 228 L180 300"/>
+    <text class="crd" x="188" y="220">1</text>
+    <text class="crd" x="188" y="316">N</text>
+  </g>
+  <g class="rel">
+    <path class="rel-line" d="M320 394 L420 394 L420 246 L640 246"/>
+    <text class="crd" x="306" y="386">1</text>
+    <text class="crd" x="624" y="238">N</text>
+  </g>
+  <g class="rel">
+    <path class="rel-line" d="M580 246 L580 300"/>
+    <text class="crd" x="588" y="240">1</text>
+    <text class="crd" x="588" y="316">N</text>
+  </g>
+  <g class="rel">
+    <path class="rel-line" d="M780 140 L880 140 L880 270 L1100 270 L1100 300"/>
+    <text class="crd" x="788" y="132">1</text>
+    <text class="crd" x="1108" y="316">N</text>
+  </g>
+  <g class="rel">
+    <path class="rel-line" d="M500 200 L440 200 L440 700 L500 700"/>
+    <text class="crd" x="486" y="192">1</text>
+    <text class="crd" x="484" y="692">N</text>
+  </g>
+  <g class="rel">
+    <path class="rel-line" d="M320 100 L400 100 L400 340 L500 340"/>
+    <text class="crd" x="328" y="92">1</text>
+    <text class="crd" x="484" y="332">N</text>
+  </g>
+  <g class="rel">
+    <path class="rel-line" d="M1040 174 L1040 300"/>
+    <text class="crd" x="1048" y="168">1</text>
+    <text class="crd" x="1048" y="316">N</text>
+  </g>
+  <g class="rel">
+    <path class="rel-line" d="M960 120 L900 120 L900 400 L780 400"/>
+    <text class="crd" x="946" y="112">1</text>
+    <text class="crd" x="796" y="392">N</text>
+  </g>
+  <g class="rel">
+    <path class="rel-line" d="M960 150 L920 150 L920 740 L780 740"/>
+    <text class="crd" x="946" y="166">1</text>
+    <text class="crd" x="796" y="732">N</text>
+  </g>
+  <g class="rel">
+    <path class="rel-line" d="M780 500 L870 500 L870 480 L960 480"/>
+    <text class="crd" x="788" y="492">1</text>
+    <text class="crd" x="944" y="472">N</text>
+  </g>
+  <g class="rel">
+    <path class="rel-line dash" d="M760 578 L820 578 L820 960 L780 960"/>
+    <text class="crd" x="768" y="594">1</text>
+    <text class="crd" x="796" y="952">N</text>
+  </g>
+  <g class="rel">
+    <path class="rel-line" d="M620 880 L620 920"/>
+    <text class="crd" x="628" y="874">1</text>
+    <text class="crd" x="628" y="936">N</text>
+  </g>
+  <g class="rel">
+    <path class="rel-line" d="M780 840 L1100 840 L1100 920"/>
+    <text class="crd" x="788" y="832">1</text>
+    <text class="crd" x="1108" y="936">N</text>
+  </g>
+  <g class="rel">
+    <path class="rel-line" d="M40 190 L15 190 L15 1000 L500 1000"/>
+    <text class="crd" x="26" y="182">1</text>
+    <text class="crd" x="484" y="992">N</text>
+  </g>
+  <g class="rel">
+    <path class="rel-line" d="M320 210 L360 210 L360 680 L320 680"/>
+    <text class="crd" x="328" y="202">1</text>
+    <text class="crd" x="336" y="672">N</text>
+  </g>
+  <g class="rel">
+    <path class="rel-line dash" d="M40 440 L25 440 L25 228 L60 228"/>
+    <text class="crd" x="30" y="456">1</text>
+    <text class="crd" x="76" y="220">N</text>
+  </g>
+  <g class="rel">
+    <path class="rel-line" d="M500 230 L460 230 L460 870 L200 870 L200 826"/>
+    <text class="crd" x="486" y="246">1</text>
+    <text class="crd" x="208" y="842">N</text>
+  </g>
+  <g class="ent">
+    <rect class="ent-box" x="40" y="40" width="280" height="188" rx="6"/>
+    <path class="ent-hdr" d="M40 48 a8 8 0 0 1 8 -8 h264 a8 8 0 0 1 8 8 v26 h-280 z"/>
+    <text class="ent-t" x="52" y="63">usuarios</text>
+    <text class="ent-a k" x="52" y="87">id</text>
+    <text class="ent-b b-PK" x="308" y="87">PK</text>
+    <text class="ent-a" x="52" y="105">nome</text>
+    <text class="ent-a" x="52" y="123">email</text>
+    <text class="ent-b b-UK" x="308" y="123">UK</text>
+    <text class="ent-a" x="52" y="141">senha_hash</text>
+    <text class="ent-a" x="52" y="159">tipo_usuario</text>
+    <text class="ent-b b-ENUM" x="308" y="159">ENUM</text>
+    <text class="ent-a" x="52" y="177">telefone</text>
+    <text class="ent-a" x="52" y="195">criado_em</text>
+    <text class="ent-a" x="52" y="213">atualizado_em</text>
+  </g>
+  <g class="ent">
+    <rect class="ent-box" x="500" y="40" width="280" height="206" rx="6"/>
+    <path class="ent-hdr" d="M500 48 a8 8 0 0 1 8 -8 h264 a8 8 0 0 1 8 8 v26 h-280 z"/>
+    <text class="ent-t" x="512" y="63">instituicoes</text>
+    <text class="ent-a k" x="512" y="87">id</text>
+    <text class="ent-b b-PK" x="768" y="87">PK</text>
+    <text class="ent-a" x="512" y="105">nome</text>
+    <text class="ent-b b-UK" x="768" y="105">UK</text>
+    <text class="ent-a" x="512" y="123">cidade</text>
+    <text class="ent-a" x="512" y="141">estado</text>
+    <text class="ent-a" x="512" y="159">descricao</text>
+    <text class="ent-a" x="512" y="177">email_contato</text>
+    <text class="ent-a" x="512" y="195">telefone</text>
+    <text class="ent-a" x="512" y="213">site</text>
+    <text class="ent-a" x="512" y="231">criado_em</text>
+  </g>
+  <g class="ent">
+    <rect class="ent-box" x="960" y="40" width="280" height="134" rx="6"/>
+    <path class="ent-hdr" d="M960 48 a8 8 0 0 1 8 -8 h264 a8 8 0 0 1 8 8 v26 h-280 z"/>
+    <text class="ent-t" x="972" y="63">categorias</text>
+    <text class="ent-a k" x="972" y="87">id</text>
+    <text class="ent-b b-PK" x="1228" y="87">PK</text>
+    <text class="ent-a" x="972" y="105">nome</text>
+    <text class="ent-a" x="972" y="123">tipo</text>
+    <text class="ent-b b-ENUM" x="1228" y="123">ENUM</text>
+    <text class="ent-a k" x="972" y="141">instituicao_id</text>
+    <text class="ent-b b-FKn" x="1228" y="141">FK?</text>
+    <text class="ent-a" x="972" y="159">criado_em</text>
+  </g>
+  <g class="ent">
+    <rect class="ent-box" x="40" y="300" width="280" height="188" rx="6"/>
+    <path class="ent-hdr" d="M40 308 a8 8 0 0 1 8 -8 h264 a8 8 0 0 1 8 8 v26 h-280 z"/>
+    <text class="ent-t" x="52" y="323">membros_instituicao</text>
+    <text class="ent-a k" x="52" y="347">id</text>
+    <text class="ent-b b-PK" x="308" y="347">PK</text>
+    <text class="ent-a k" x="52" y="365">usuario_id</text>
+    <text class="ent-b b-FK" x="308" y="365">FK</text>
+    <text class="ent-a k" x="52" y="383">instituicao_id</text>
+    <text class="ent-b b-FK" x="308" y="383">FK</text>
+    <text class="ent-a" x="52" y="401">papel</text>
+    <text class="ent-b b-ENUM" x="308" y="401">ENUM</text>
+    <text class="ent-a" x="52" y="419">status</text>
+    <text class="ent-b b-ENUM" x="308" y="419">ENUM</text>
+    <text class="ent-a" x="52" y="437">data_solicitacao</text>
+    <text class="ent-a" x="52" y="455">data_resposta</text>
+    <text class="ent-a k" x="52" y="473">aprovado_por_id</text>
+    <text class="ent-b b-FKn" x="308" y="473">FK?</text>
+  </g>
+  <g class="ent">
+    <rect class="ent-box" x="500" y="300" width="280" height="278" rx="6"/>
+    <path class="ent-hdr" d="M500 308 a8 8 0 0 1 8 -8 h264 a8 8 0 0 1 8 8 v26 h-280 z"/>
+    <text class="ent-t" x="512" y="323">doacoes</text>
+    <text class="ent-a k" x="512" y="347">id</text>
+    <text class="ent-b b-PK" x="768" y="347">PK</text>
+    <text class="ent-a" x="512" y="365">tipo</text>
+    <text class="ent-b b-ENUM" x="768" y="365">ENUM</text>
+    <text class="ent-a" x="512" y="383">valor</text>
+    <text class="ent-a" x="512" y="401">item</text>
+    <text class="ent-a" x="512" y="419">quantidade</text>
+    <text class="ent-a" x="512" y="437">unidade</text>
+    <text class="ent-a" x="512" y="455">descricao</text>
+    <text class="ent-a" x="512" y="473">anonima</text>
+    <text class="ent-a k" x="512" y="491">doador_id</text>
+    <text class="ent-b b-FKn" x="768" y="491">FK?</text>
+    <text class="ent-a" x="512" y="509">doador_nome</text>
+    <text class="ent-a k" x="512" y="527">instituicao_id</text>
+    <text class="ent-b b-FK" x="768" y="527">FK</text>
+    <text class="ent-a k" x="512" y="545">categoria_id</text>
+    <text class="ent-b b-FKn" x="768" y="545">FK?</text>
+    <text class="ent-a" x="512" y="563">data_doacao</text>
+  </g>
+  <g class="ent">
+    <rect class="ent-box" x="960" y="300" width="280" height="224" rx="6"/>
+    <path class="ent-hdr" d="M960 308 a8 8 0 0 1 8 -8 h264 a8 8 0 0 1 8 8 v26 h-280 z"/>
+    <text class="ent-t" x="972" y="323">despesas</text>
+    <text class="ent-a k" x="972" y="347">id</text>
+    <text class="ent-b b-PK" x="1228" y="347">PK</text>
+    <text class="ent-a" x="972" y="365">numero_documento</text>
+    <text class="ent-a" x="972" y="383">data_emissao</text>
+    <text class="ent-a" x="972" y="401">valor_total</text>
+    <text class="ent-a" x="972" y="419">descricao</text>
+    <text class="ent-a" x="972" y="437">arquivo_url</text>
+    <text class="ent-a k" x="972" y="455">categoria_id</text>
+    <text class="ent-b b-FK" x="1228" y="455">FK</text>
+    <text class="ent-a k" x="972" y="473">instituicao_id</text>
+    <text class="ent-b b-FK" x="1228" y="473">FK</text>
+    <text class="ent-a k" x="972" y="491">doacao_id</text>
+    <text class="ent-b b-FKn" x="1228" y="491">FK?</text>
+    <text class="ent-a" x="972" y="509">criado_em</text>
+  </g>
+  <g class="ent">
+    <rect class="ent-box" x="40" y="620" width="280" height="206" rx="6"/>
+    <path class="ent-hdr" d="M40 628 a8 8 0 0 1 8 -8 h264 a8 8 0 0 1 8 8 v26 h-280 z"/>
+    <text class="ent-t" x="52" y="643">auditoria</text>
+    <text class="ent-a k" x="52" y="667">id</text>
+    <text class="ent-b b-PK" x="308" y="667">PK</text>
+    <text class="ent-a" x="52" y="685">entidade</text>
+    <text class="ent-a" x="52" y="703">entidade_id</text>
+    <text class="ent-a" x="52" y="721">operacao</text>
+    <text class="ent-b b-ENUM" x="308" y="721">ENUM</text>
+    <text class="ent-a" x="52" y="739">dados_anteriores</text>
+    <text class="ent-a" x="52" y="757">dados_novos</text>
+    <text class="ent-a k" x="52" y="775">usuario_id</text>
+    <text class="ent-b b-FK" x="308" y="775">FK</text>
+    <text class="ent-a k" x="52" y="793">instituicao_id</text>
+    <text class="ent-b b-FK" x="308" y="793">FK</text>
+    <text class="ent-a" x="52" y="811">data_hora</text>
+  </g>
+  <g class="ent">
+    <rect class="ent-box" x="500" y="620" width="280" height="260" rx="6"/>
+    <path class="ent-hdr" d="M500 628 a8 8 0 0 1 8 -8 h264 a8 8 0 0 1 8 8 v26 h-280 z"/>
+    <text class="ent-t" x="512" y="643">itens_estoque</text>
+    <text class="ent-a k" x="512" y="667">id</text>
+    <text class="ent-b b-PK" x="768" y="667">PK</text>
+    <text class="ent-a" x="512" y="685">nome</text>
+    <text class="ent-a" x="512" y="703">descricao</text>
+    <text class="ent-a" x="512" y="721">unidade_medida</text>
+    <text class="ent-a" x="512" y="739">qtd_atual</text>
+    <text class="ent-a" x="512" y="757">qtd_minima</text>
+    <text class="ent-a" x="512" y="775">preco_referencia</text>
+    <text class="ent-a" x="512" y="793">ativo</text>
+    <text class="ent-a k" x="512" y="811">categoria_id</text>
+    <text class="ent-b b-FK" x="768" y="811">FK</text>
+    <text class="ent-a k" x="512" y="829">instituicao_id</text>
+    <text class="ent-b b-FK" x="768" y="829">FK</text>
+    <text class="ent-a" x="512" y="847">criado_em</text>
+    <text class="ent-a" x="512" y="865">atualizado_em</text>
+  </g>
+  <g class="ent">
+    <rect class="ent-box" x="500" y="920" width="280" height="188" rx="6"/>
+    <path class="ent-hdr" d="M500 928 a8 8 0 0 1 8 -8 h264 a8 8 0 0 1 8 8 v26 h-280 z"/>
+    <text class="ent-t" x="512" y="943">movimentacoes_estoque</text>
+    <text class="ent-a k" x="512" y="967">id</text>
+    <text class="ent-b b-PK" x="768" y="967">PK</text>
+    <text class="ent-a" x="512" y="985">tipo</text>
+    <text class="ent-b b-ENUM" x="768" y="985">ENUM</text>
+    <text class="ent-a" x="512" y="1003">quantidade</text>
+    <text class="ent-a" x="512" y="1021">observacao</text>
+    <text class="ent-a" x="512" y="1039">data_mov</text>
+    <text class="ent-a k" x="512" y="1057">item_id</text>
+    <text class="ent-b b-FK" x="768" y="1057">FK</text>
+    <text class="ent-a k" x="512" y="1075">gestor_id</text>
+    <text class="ent-b b-FK" x="768" y="1075">FK</text>
+    <text class="ent-a k" x="512" y="1093">doacao_id</text>
+    <text class="ent-b b-FKn" x="768" y="1093">FK?</text>
+  </g>
+  <g class="ent">
+    <rect class="ent-box" x="960" y="920" width="280" height="134" rx="6"/>
+    <path class="ent-hdr" d="M960 928 a8 8 0 0 1 8 -8 h264 a8 8 0 0 1 8 8 v26 h-280 z"/>
+    <text class="ent-t" x="972" y="943">alertas</text>
+    <text class="ent-a k" x="972" y="967">id</text>
+    <text class="ent-b b-PK" x="1228" y="967">PK</text>
+    <text class="ent-a" x="972" y="985">mensagem</text>
+    <text class="ent-a" x="972" y="1003">lido</text>
+    <text class="ent-a" x="972" y="1021">criado_em</text>
+    <text class="ent-a k" x="972" y="1039">item_id</text>
+    <text class="ent-b b-FK" x="1228" y="1039">FK</text>
+  </g>
+    </svg>
+  </div>
+  <p class="hint">Linhas tracejadas indicam relacionamento opcional de origem (a doação que originou a
+  entrada de estoque e o gestor que aprovou o vínculo). Cardinalidade completa na tabela abaixo.</p></div>
+</section>
+
+<section>
+  <h2 id="rels"><span class="num">6</span>Relacionamentos, cardinalidade e justificativa</h2>
+  <p class="lead">Use esta tabela como fonte da verdade ao redesenhar: ela é mais precisa que o traçado
+  das linhas e amarra cada chave estrangeira ao requisito ou à regra que a exige.</p>
+  <div class="card"><div class="scroller">
+  <table class="tbl">
+    <thead><tr><th>Entidade pai</th><th>Entidade filha</th><th>Chave estrangeira</th><th>Cardinalidade</th><th>Justificativa</th></tr></thead>
+    <tbody>
+<tr><td><code>usuarios</code></td><td><code>membros_instituicao</code></td><td><code>usuario_id</code></td><td class="nw">1 : N</td><td>Um usuário pode registrar várias solicitações de vínculo ao longo do tempo, mas apenas uma pode estar aprovada (RN02).</td></tr>
+<tr><td><code>instituicoes</code></td><td><code>membros_instituicao</code></td><td><code>instituicao_id</code></td><td class="nw">1 : N</td><td>Uma instituição possui vários membros, sendo exatamente um deles o Dono (RN03).</td></tr>
+<tr><td><code>usuarios</code></td><td><code>membros_instituicao</code></td><td><code>aprovado_por_id</code></td><td class="nw">0..1 : N</td><td>Registra qual Dono decidiu a solicitação (RF19). Nulo enquanto pendente.</td></tr>
+<tr><td><code>usuarios</code></td><td><code>doacoes</code></td><td><code>doador_id</code></td><td class="nw">0..1 : N</td><td>Nulo quando a doação foi lançada pelo gestor para um doador externo, identificado em doador_nome (RF36).</td></tr>
+<tr><td><code>instituicoes</code></td><td><code>doacoes</code></td><td><code>instituicao_id</code></td><td class="nw">1 : N</td><td>Toda doação pertence a exatamente uma instituição (RN05).</td></tr>
+<tr><td><code>categorias</code></td><td><code>doacoes</code></td><td><code>categoria_id</code></td><td class="nw">0..1 : N</td><td>Classificação da receita (RF45). Opcional.</td></tr>
+<tr><td><code>instituicoes</code></td><td><code>despesas</code></td><td><code>instituicao_id</code></td><td class="nw">1 : N</td><td>Toda despesa pertence a exatamente uma instituição (RN05).</td></tr>
+<tr><td><code>categorias</code></td><td><code>despesas</code></td><td><code>categoria_id</code></td><td class="nw">1 : N</td><td>Classificação obrigatória, base do gráfico de despesa por categoria (RF69).</td></tr>
+<tr><td><code>doacoes</code></td><td><code>despesas</code></td><td><code>doacao_id</code></td><td class="nw">0..1 : N</td><td>Rastreia qual doação custeou a despesa (RF44). Opcional.</td></tr>
+<tr><td><code>instituicoes</code></td><td><code>itens_estoque</code></td><td><code>instituicao_id</code></td><td class="nw">1 : N</td><td>Todo item pertence a exatamente uma instituição (RF51).</td></tr>
+<tr><td><code>categorias</code></td><td><code>itens_estoque</code></td><td><code>categoria_id</code></td><td class="nw">1 : N</td><td>Alimentos básicos, medicamentos, higiene, vestuário (RF47).</td></tr>
+<tr><td><code>itens_estoque</code></td><td><code>movimentacoes_estoque</code></td><td><code>item_id</code></td><td class="nw">1 : N</td><td>O saldo do item é derivado desta relação (RN11).</td></tr>
+<tr><td><code>usuarios</code></td><td><code>movimentacoes_estoque</code></td><td><code>gestor_id</code></td><td class="nw">1 : N</td><td>Autoria obrigatória e imutável da movimentação (RF55).</td></tr>
+<tr><td><code>doacoes</code></td><td><code>movimentacoes_estoque</code></td><td><code>doacao_id</code></td><td class="nw">0..1 : N</td><td>Entrada de estoque originada de doação material (RF56). Opcional.</td></tr>
+<tr><td><code>itens_estoque</code></td><td><code>alertas</code></td><td><code>item_id</code></td><td class="nw">1 : N</td><td>Alerta gerado quando o saldo cruza a quantidade mínima (RF60, RN14).</td></tr>
+<tr><td><code>usuarios</code></td><td><code>auditoria</code></td><td><code>usuario_id</code></td><td class="nw">1 : N</td><td>Autor da operação registrada na trilha (RF81).</td></tr>
+<tr><td><code>instituicoes</code></td><td><code>auditoria</code></td><td><code>instituicao_id</code></td><td class="nw">1 : N</td><td>Contexto institucional da operação auditada (RF81).</td></tr>
+<tr><td><code>instituicoes</code></td><td><code>categorias</code></td><td><code>instituicao_id</code></td><td class="nw">0..1 : N</td><td>Categoria própria da instituição; nulo indica categoria padrão do sistema.</td></tr>
+    </tbody>
+  </table>
+  </div></div>
+</section>
+
+<section>
+  <h2 id="er-src"><span class="num">7</span>Código do modelo de dados</h2>
+  <p class="lead">Duas opções: Mermaid, que o GitHub e o Notion renderizam direto, e DBML, para o
+  dbdiagram.io &mdash; este gera o layout automático mais limpo e exporta a imagem em PNG ou SVG.</p>
+  <div class="codebox">
+    <div class="bar"><span class="fname">modelo-er.mmd &nbsp;&middot;&nbsp; Mermaid</span>
+      <button class="copy" data-t="mmd">Copiar</button></div>
+    <pre id="mmd">erDiagram
+    USUARIOS {
+        int id PK
+        string nome
+        string email UK
+        string senha_hash
+        enum tipo_usuario "Gestor | Apoiador"
+        string telefone
+        datetime criado_em
+        datetime atualizado_em
+    }
+    INSTITUICOES {
+        int id PK
+        string nome UK
+        string cidade
+        string estado
+        text descricao
+        string email_contato
+        string telefone
+        string site
+        datetime criado_em
+    }
+    CATEGORIAS {
+        int id PK
+        string nome
+        enum tipo "Receita | Despesa | Estoque"
+        int instituicao_id FK "nulo = categoria padrao"
+        datetime criado_em
+    }
+    MEMBROS_INSTITUICAO {
+        int id PK
+        int usuario_id FK
+        int instituicao_id FK
+        enum papel "Dono | Funcionario"
+        enum status "Pendente | Aprovado | Rejeitado"
+        datetime data_solicitacao
+        datetime data_resposta
+        int aprovado_por_id FK
+    }
+    DOACOES {
+        int id PK
+        enum tipo "Financeira | Material"
+        decimal valor
+        string item
+        int quantidade
+        string unidade
+        text descricao
+        bool anonima
+        int doador_id FK "nulo = doador externo"
+        string doador_nome
+        int instituicao_id FK
+        int categoria_id FK
+        datetime data_doacao
+    }
+    DESPESAS {
+        int id PK
+        string numero_documento
+        date data_emissao
+        decimal valor_total
+        text descricao
+        string arquivo_url
+        int categoria_id FK
+        int instituicao_id FK
+        int doacao_id FK "doacao que custeou"
+        datetime criado_em
+    }
+    ITENS_ESTOQUE {
+        int id PK
+        string nome
+        text descricao
+        string unidade_medida
+        int qtd_atual
+        int qtd_minima
+        decimal preco_referencia
+        bool ativo
+        int categoria_id FK
+        int instituicao_id FK
+        datetime criado_em
+        datetime atualizado_em
+    }
+    MOVIMENTACOES_ESTOQUE {
+        int id PK
+        enum tipo "Entrada | Saida"
+        int quantidade
+        text observacao
+        datetime data_mov
+        int item_id FK
+        int gestor_id FK
+        int doacao_id FK "origem da entrada"
+    }
+    ALERTAS {
+        int id PK
+        string mensagem
+        bool lido
+        datetime criado_em
+        int item_id FK
+    }
+    AUDITORIA {
+        int id PK
+        string entidade
+        int entidade_id
+        enum operacao "Criacao | Alteracao | Exclusao"
+        json dados_anteriores
+        json dados_novos
+        int usuario_id FK
+        int instituicao_id FK
+        datetime data_hora
+    }
+
+    USUARIOS            ||--o{ MEMBROS_INSTITUICAO    : "solicita vinculo"
+    INSTITUICOES        ||--o{ MEMBROS_INSTITUICAO    : "possui membros"
+    USUARIOS            |o--o{ MEMBROS_INSTITUICAO    : "aprova"
+    USUARIOS            |o--o{ DOACOES                : "doa"
+    INSTITUICOES        ||--o{ DOACOES                : "recebe"
+    CATEGORIAS          |o--o{ DOACOES                : "classifica"
+    INSTITUICOES        ||--o{ DESPESAS               : "realiza"
+    CATEGORIAS          ||--o{ DESPESAS               : "classifica"
+    DOACOES             |o--o{ DESPESAS               : "custeia"
+    INSTITUICOES        ||--o{ ITENS_ESTOQUE          : "possui"
+    CATEGORIAS          ||--o{ ITENS_ESTOQUE          : "classifica"
+    ITENS_ESTOQUE       ||--o{ MOVIMENTACOES_ESTOQUE  : "movimenta"
+    USUARIOS            ||--o{ MOVIMENTACOES_ESTOQUE  : "registra"
+    DOACOES             |o--o{ MOVIMENTACOES_ESTOQUE  : "origina entrada"
+    ITENS_ESTOQUE       ||--o{ ALERTAS                : "gera"
+    USUARIOS            ||--o{ AUDITORIA              : "executa"
+    INSTITUICOES        ||--o{ AUDITORIA              : "contextualiza"</pre>
+  </div>
+  <div class="codebox">
+    <div class="bar"><span class="fname">modelo-er.dbml &nbsp;&middot;&nbsp; dbdiagram.io</span>
+      <button class="copy" data-t="dbml">Copiar</button></div>
+    <pre id="dbml">// dbdiagram.io  /  dbml
+Table usuarios {
+  id int [pk, increment]
+  nome varchar(100) [not null]
+  email varchar(150) [not null, unique]
+  senha_hash varchar(255) [not null]
+  tipo_usuario tipo_usuario_enum [not null]
+  telefone varchar(20)
+  criado_em timestamp [not null]
+  atualizado_em timestamp [not null]
+}
+
+Table instituicoes {
+  id int [pk, increment]
+  nome varchar(120) [not null, unique]
+  cidade varchar(60)
+  estado char(2)
+  descricao text
+  email_contato varchar(150)
+  telefone varchar(20)
+  site varchar(200)
+  criado_em timestamp [not null]
+}
+
+Table categorias {
+  id int [pk, increment]
+  nome varchar(80) [not null]
+  tipo categoria_tipo_enum [not null]
+  instituicao_id int [null, note: 'nulo = categoria padrao do sistema']
+  criado_em timestamp [not null]
+  indexes { (nome, tipo, instituicao_id) [unique] }
+}
+
+Table membros_instituicao {
+  id int [pk, increment]
+  usuario_id int [not null]
+  instituicao_id int [not null]
+  papel papel_enum [not null]
+  status status_membro_enum [not null, default: 'Pendente']
+  data_solicitacao timestamp [not null]
+  data_resposta timestamp [null]
+  aprovado_por_id int [null]
+  indexes { (usuario_id, instituicao_id) [unique] }
+}
+
+Table doacoes {
+  id int [pk, increment]
+  tipo tipo_doacao_enum [not null]
+  valor decimal(12,2) [null]
+  item varchar(120) [null]
+  quantidade int [null]
+  unidade varchar(20) [null]
+  descricao text
+  anonima boolean [not null, default: false]
+  doador_id int [null, note: 'nulo quando doador externo']
+  doador_nome varchar(120) [null]
+  instituicao_id int [not null]
+  categoria_id int [null]
+  data_doacao timestamp [not null]
+}
+
+Table despesas {
+  id int [pk, increment]
+  numero_documento varchar(60) [not null]
+  data_emissao date [not null]
+  valor_total decimal(12,2) [not null]
+  descricao text
+  arquivo_url varchar(300) [null]
+  categoria_id int [not null]
+  instituicao_id int [not null]
+  doacao_id int [null, note: 'RF44 - doacao que custeou']
+  criado_em timestamp [not null]
+}
+
+Table itens_estoque {
+  id int [pk, increment]
+  nome varchar(120) [not null]
+  descricao text
+  unidade_medida varchar(20) [not null]
+  qtd_atual int [not null, default: 0]
+  qtd_minima int [not null, default: 5]
+  preco_referencia decimal(12,2) [null]
+  ativo boolean [not null, default: true]
+  categoria_id int [not null]
+  instituicao_id int [not null]
+  criado_em timestamp [not null]
+  atualizado_em timestamp [not null]
+}
+
+Table movimentacoes_estoque {
+  id int [pk, increment]
+  tipo tipo_mov_enum [not null]
+  quantidade int [not null]
+  observacao text
+  data_mov timestamp [not null]
+  item_id int [not null]
+  gestor_id int [not null]
+  doacao_id int [null, note: 'RF56 - entrada originada de doacao material']
+}
+
+Table alertas {
+  id int [pk, increment]
+  mensagem varchar(300) [not null]
+  lido boolean [not null, default: false]
+  criado_em timestamp [not null]
+  item_id int [not null]
+}
+
+Table auditoria {
+  id int [pk, increment]
+  entidade varchar(60) [not null]
+  entidade_id int [not null]
+  operacao operacao_enum [not null]
+  dados_anteriores jsonb
+  dados_novos jsonb
+  usuario_id int [not null]
+  instituicao_id int [not null]
+  data_hora timestamp [not null]
+}
+
+Ref: membros_instituicao.usuario_id &gt; usuarios.id
+Ref: membros_instituicao.instituicao_id &gt; instituicoes.id
+Ref: membros_instituicao.aprovado_por_id &gt; usuarios.id
+Ref: categorias.instituicao_id &gt; instituicoes.id
+Ref: doacoes.doador_id &gt; usuarios.id
+Ref: doacoes.instituicao_id &gt; instituicoes.id
+Ref: doacoes.categoria_id &gt; categorias.id
+Ref: despesas.categoria_id &gt; categorias.id
+Ref: despesas.instituicao_id &gt; instituicoes.id
+Ref: despesas.doacao_id &gt; doacoes.id
+Ref: itens_estoque.categoria_id &gt; categorias.id
+Ref: itens_estoque.instituicao_id &gt; instituicoes.id
+Ref: movimentacoes_estoque.item_id &gt; itens_estoque.id
+Ref: movimentacoes_estoque.gestor_id &gt; usuarios.id
+Ref: movimentacoes_estoque.doacao_id &gt; doacoes.id
+Ref: alertas.item_id &gt; itens_estoque.id
+Ref: auditoria.usuario_id &gt; usuarios.id
+Ref: auditoria.instituicao_id &gt; instituicoes.id</pre>
+  </div>
+</section>
+
+<section>
+  <h2 id="trace"><span class="num">8</span>Rastreabilidade: caso de uso &rarr; requisito</h2>
+  <p class="lead">Os 40 casos de uso cobrem integralmente RF01 a RF81. Esta tabela é a prova de
+  consistência entre a seção de requisitos e a de modelagem, e vale ser incluída no artigo.</p>
+  <div class="card"><div class="scroller">
+  <table class="tbl">
+    <thead><tr><th>UC</th><th>Caso de uso</th><th>Ator principal</th><th>Requisitos atendidos</th></tr></thead>
+    <tbody>
+<tr><td class="nw"><b>UC01</b></td><td>Criar conta</td><td class="nw">Visitante</td><td class="rf">RF01, RF02, RF03, RF04</td></tr>
+<tr><td class="nw"><b>UC02</b></td><td>Autenticar-se</td><td class="nw">Visitante</td><td class="rf">RF01, RF05, RF06</td></tr>
+<tr><td class="nw"><b>UC03</b></td><td>Gerenciar dados do perfil</td><td class="nw">Apoiador, Gestor</td><td class="rf">RF07</td></tr>
+<tr><td class="nw"><b>UC04</b></td><td>Encerrar sessão</td><td class="nw">Apoiador, Gestor</td><td class="rf">RF08</td></tr>
+<tr><td class="nw"><b>UC05</b></td><td>Redefinir senha</td><td class="nw">Apoiador, Gestor</td><td class="rf">RF09</td></tr>
+<tr><td class="nw"><b>UC06</b></td><td>Consultar instituições</td><td class="nw">Visitante</td><td class="rf">RF26</td></tr>
+<tr><td class="nw"><b>UC07</b></td><td>Visualizar perfil da instituição</td><td class="nw">Visitante</td><td class="rf">RF27</td></tr>
+<tr><td class="nw"><b>UC08</b></td><td>Consultar painel de transparência</td><td class="nw">Visitante</td><td class="rf">RF63, RF64, RF65, RF66, RF67, RF68, RF69, RF70, RF73</td></tr>
+<tr><td class="nw"><b>UC09</b></td><td>Filtrar por período e categoria</td><td class="nw">Visitante</td><td class="rf">RF71</td></tr>
+<tr><td class="nw"><b>UC10</b></td><td>Exportar dados de transparência</td><td class="nw">Visitante</td><td class="rf">RF72</td></tr>
+<tr><td class="nw"><b>UC11</b></td><td>Registrar doação</td><td class="nw">Apoiador</td><td class="rf">RF28, RF29, RF30, RF31</td></tr>
+<tr><td class="nw"><b>UC12</b></td><td>Definir anonimato da doação</td><td class="nw">Apoiador</td><td class="rf">RF34, RF66</td></tr>
+<tr><td class="nw"><b>UC13</b></td><td>Consultar histórico de doações</td><td class="nw">Apoiador</td><td class="rf">RF32</td></tr>
+<tr><td class="nw"><b>UC14</b></td><td>Emitir comprovante</td><td class="nw">Apoiador</td><td class="rf">RF35</td></tr>
+<tr><td class="nw"><b>UC15</b></td><td>Visualizar painel de contribuições</td><td class="nw">Apoiador</td><td class="rf">RF33</td></tr>
+<tr><td class="nw"><b>UC16</b></td><td>Criar instituição</td><td class="nw">Gestor Dono</td><td class="rf">RF10, RF11, RF12, RF13</td></tr>
+<tr><td class="nw"><b>UC17</b></td><td>Solicitar acesso a uma instituição</td><td class="nw">Gestor Funcionário</td><td class="rf">RF10, RF14, RF15, RF16, RF17</td></tr>
+<tr><td class="nw"><b>UC18</b></td><td>Gerenciar cadastro institucional</td><td class="nw">Gestor Dono</td><td class="rf">RF25</td></tr>
+<tr><td class="nw"><b>UC19</b></td><td>Avaliar solicitações de vínculo</td><td class="nw">Gestor Dono</td><td class="rf">RF18, RF19, RF20, RF22</td></tr>
+<tr><td class="nw"><b>UC20</b></td><td>Revogar vínculo de membro</td><td class="nw">Gestor Dono</td><td class="rf">RF21, RF23</td></tr>
+<tr><td class="nw"><b>UC21</b></td><td>Notificar solicitante</td><td class="nw">Sistema</td><td class="rf">RF24</td></tr>
+<tr><td class="nw"><b>UC22</b></td><td>Registrar doação recebida</td><td class="nw">Gestor Funcionário</td><td class="rf">RF36, RF40</td></tr>
+<tr><td class="nw"><b>UC23</b></td><td>Gerenciar doações recebidas</td><td class="nw">Gestor Funcionário</td><td class="rf">RF37, RF38, RF39</td></tr>
+<tr><td class="nw"><b>UC24</b></td><td>Registrar despesa</td><td class="nw">Gestor Funcionário</td><td class="rf">RF41</td></tr>
+<tr><td class="nw"><b>UC25</b></td><td>Gerenciar despesas</td><td class="nw">Gestor Funcionário</td><td class="rf">RF43, RF46</td></tr>
+<tr><td class="nw"><b>UC26</b></td><td>Anexar comprovante</td><td class="nw">Gestor Funcionário</td><td class="rf">RF42</td></tr>
+<tr><td class="nw"><b>UC27</b></td><td>Vincular despesa à doação</td><td class="nw">Gestor Funcionário</td><td class="rf">RF44</td></tr>
+<tr><td class="nw"><b>UC28</b></td><td>Gerenciar categorias de itens</td><td class="nw">Gestor Funcionário</td><td class="rf">RF45, RF46, RF47</td></tr>
+<tr><td class="nw"><b>UC29</b></td><td>Gerenciar itens de estoque</td><td class="nw">Gestor Funcionário</td><td class="rf">RF48, RF49, RF50, RF51</td></tr>
+<tr><td class="nw"><b>UC30</b></td><td>Registrar movimentação de estoque</td><td class="nw">Gestor Funcionário</td><td class="rf">RF52, RF54, RF55</td></tr>
+<tr><td class="nw"><b>UC31</b></td><td>Atualizar saldo do item</td><td class="nw">Sistema</td><td class="rf">RF53</td></tr>
+<tr><td class="nw"><b>UC32</b></td><td>Gerar alerta de estoque crítico</td><td class="nw">Sistema</td><td class="rf">RF59, RF60</td></tr>
+<tr><td class="nw"><b>UC33</b></td><td>Converter doação material em entrada</td><td class="nw">Gestor Funcionário</td><td class="rf">RF56</td></tr>
+<tr><td class="nw"><b>UC34</b></td><td>Consultar movimentações e relatório</td><td class="nw">Gestor Funcionário</td><td class="rf">RF57, RF58</td></tr>
+<tr><td class="nw"><b>UC35</b></td><td>Consultar alertas e marcar como lido</td><td class="nw">Gestor Funcionário</td><td class="rf">RF61</td></tr>
+<tr><td class="nw"><b>UC36</b></td><td>Visualizar painel administrativo</td><td class="nw">Gestor Funcionário</td><td class="rf">RF62, RF74, RF75, RF76</td></tr>
+<tr><td class="nw"><b>UC37</b></td><td>Gerar relatórios</td><td class="nw">Gestor Funcionário</td><td class="rf">RF58, RF77, RF78</td></tr>
+<tr><td class="nw"><b>UC38</b></td><td>Gerar demonstrativo de prestação de contas</td><td class="nw">Gestor Funcionário</td><td class="rf">RF62, RF79</td></tr>
+<tr><td class="nw"><b>UC39</b></td><td>Exportar relatórios</td><td class="nw">Gestor Funcionário</td><td class="rf">RF80</td></tr>
+<tr><td class="nw"><b>UC40</b></td><td>Registrar trilha de auditoria</td><td class="nw">Sistema</td><td class="rf">RF81</td></tr>
+    </tbody>
+  </table>
+  </div></div>
+</section>
+
+<section>
+  <h2 id="decis"><span class="num">9</span>Decisões de modelagem que valem explicar no artigo</h2>
+  <ul class="decis">
+    <li><b>Gestor Dono generaliza Gestor Funcionário, sem ator abstrato.</b> Como o Dono executa todos
+    os casos de uso do Funcionário e acrescenta quatro, a relação entre eles é de superconjunto, e a
+    generalização direta expressa exatamente isso. Um ator abstrato intermediário só se justificaria se
+    cada um tivesse casos de uso que o outro não tem, o que não ocorre. Já UC16 e UC17 ficam com o ator
+    que o executor <i>passa a ser</i> ao concluí-los &mdash; mesma lógica do ator Cliente executar
+    &ldquo;Cadastrar-se&rdquo; sem ainda ser cliente. A restrição de que ambos só valem antes do vínculo
+    é temporal, não de papel, e por isso aparece como pré-condição do caso de uso, não como um terceiro
+    ator.</li>
+    <li><b>Vínculo como entidade, não como coluna.</b> <code>membros_instituicao</code> existe porque o
+    vínculo tem atributos próprios: papel, situação, data de solicitação, data de resposta e quem
+    aprovou. Guardar <code>instituicao_id</code> direto em <code>usuarios</code> inviabilizaria o fluxo de
+    aprovação (RF15, RF19) e o histórico de solicitações rejeitadas.</li>
+    <li><b>Saldo de estoque derivado, não digitado.</b> <code>itens_estoque.qtd_atual</code> é um campo
+    materializado por desempenho, mas a verdade está em <code>movimentacoes_estoque</code> (RN11). Por isso
+    RNF30 exige que gravação da movimentação, atualização do saldo e geração do alerta ocorram na
+    mesma transação &mdash; sem isso os dois valores divergem e a prestação de contas perde credibilidade.</li>
+    <li><b>Doador opcional em <code>doacoes</code>.</b> O par <code>doador_id</code> nulo +
+    <code>doador_nome</code> preenchido cobre a doação recebida fora do sistema (RF36), realidade de
+    qualquer ONG pequena. O inverso, <code>doador_id</code> preenchido, habilita o histórico do apoiador (RF32).</li>
+    <li><b><code>doacao_id</code> em despesas e em movimentações.</b> São os dois elos que transformam
+    registro isolado em rastreamento de aplicação de recurso (RF44 e RF56). É a principal diferença
+    estrutural em relação ao sistema analisado, onde doação, despesa e estoque não se conversam.</li>
+    <li><b><code>categorias</code> com <code>tipo</code> e instituição opcional.</b> Uma única entidade atende
+    receita, despesa e estoque (RF45, RF47). Com <code>instituicao_id</code> nulo a categoria é padrão do
+    sistema; preenchido, é própria da organização. Evita três tabelas quase idênticas.</li>
+    <li><b><code>auditoria</code> genérica.</b> O par <code>entidade</code> + <code>entidade_id</code> registra
+    qualquer operação de escrita sem criar uma tabela de histórico por entidade (RF81). Simples de
+    implementar com um interceptador no <code>SaveChanges</code> do Entity Framework.</li>
+    <li><b>O que deliberadamente não está no modelo.</b> Não há entidade de pagamento, de vaga de
+    voluntariado nem de candidatura. A doação é declaratória e o voluntariado está fora do escopo
+    (seção 2.10 do documento de requisitos) &mdash; vale dizer isso na defesa antes que perguntem.</li>
+  </ul>
+</section>
+
+<footer>
+  Gerado a partir de <code>docs/tcc/01-requisitos.md</code> &middot; 40 casos de uso &middot; 10 entidades
+  &middot; 18 relacionamentos. Diagramas em SVG: dão zoom sem perder qualidade e podem ser impressos
+  direto desta página.
+</footer>
+
+</div>
+<script>
+document.querySelectorAll('button.copy').forEach(function(b){
+  b.addEventListener('click', function(){
+    var el = document.getElementById(b.dataset.t);
+    var txt = el.innerText;
+    var done = function(){
+      var old = b.textContent; b.textContent = 'Copiado'; b.classList.add('ok');
+      setTimeout(function(){ b.textContent = old; b.classList.remove('ok'); }, 1600);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(txt).then(done, function(){ fallback(txt, done); });
+    } else { fallback(txt, done); }
+  });
+});
+function fallback(txt, done){
+  try{
+    var ta = document.createElement('textarea');
+    ta.value = txt; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+    document.body.removeChild(ta); done();
+  }catch(e){}
+}
+</script>
+</body>
+</html>

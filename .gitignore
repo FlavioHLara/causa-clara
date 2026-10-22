@@ -1,0 +1,43 @@
+# ---------- .NET ----------
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+artifacts/
+TestResults/
+*.trx
+*.coverage
+*.coverlet.json
+
+# ---------- Node ----------
+node_modules/
+dist/
+dist-ssr/
+.vite/
+*.local
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ---------- Segredos (RNF18) ----------
+.env
+.env.*
+!.env.example
+appsettings.Development.json
+appsettings.Production.json
+*.pfx
+
+# ---------- Ferramentas ----------
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+*.swp
+.DS_Store
+Thumbs.db
+
+# ---------- Gerado ----------
+frontend/src/servicos/api-tipos.ts
