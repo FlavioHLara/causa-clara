@@ -197,6 +197,14 @@ Detalhada na seção 14 de `docs/05-arquitetura.md`.
 
 A marca **Causa Clara** já está aplicada (21/10/2026). *Casa de Apoio Semear* permanece como instituição fictícia nos dados de exemplo — é dado de amostra, não marca, e **não deve ser trocada**.
 
+### O protótipo está fechado para esta fase
+
+O protótipo cumpre o que precisava cumprir: 19 telas desktop, 19 móveis, 3 gavetas de menu, 94 ligações, nenhuma tela órfã, todo perfil com entrada própria no navegável. **Não abra frente de retrabalho nele agora.**
+
+Questões de usabilidade que sobraram — o item de menu de Categorias, a profundidade da navegação móvel, o que merece atalho — **serão decididas durante a implementação, com a tela funcionando**, e aplicadas ao Figma ao final, de uma vez. O estático dá menos informação que o sistema rodando; adiantar essas decisões no protótipo seria palpite caro.
+
+Vale para o agente: **não proponha ajustes de interface ao protótipo** nem trate o que está em "Revisitar na implementação" (seção 12) como pendência bloqueante. Se algo da interface incomodar enquanto o código anda, anote na seção 12 e siga.
+
 > `figma.root.name` não é gravável: a API responde "Setting the document name is currently not supported". Renomear o arquivo só pela interface do Figma.
 
 ### Armadilhas da API do Figma que já custaram chamadas
@@ -244,6 +252,14 @@ Os scripts validados e um *linter* para essas armadilhas estão em `docs/recurso
 - [ ] Desenho de autenticação e autorização — o que entra no token, como o papel é resolvido, o que acontece com gestor sem vínculo.
 - [ ] Renomear o arquivo no Figma pela interface (a API não permite).
 - [ ] Decidir se haverá CI (`.github/workflows`) rodando build e testes. Não é exigência de nenhum RNF, mas dá evidência para o artigo.
+
+### Revisitar na implementação — não bloqueiam o código
+
+Decisão de 22/10/2026: estes pontos se avaliam melhor com a aplicação rodando, e os ajustes voltam ao Figma de uma vez, ao final. Ver seção 9.
+
+- [ ] **Categorias sem item de menu.** T19 atende RF45–RF47 mas não está na barra lateral; no protótipo é alcançada pelo seletor de categoria de T12. Escolher entre item próprio no menu ou aba dentro de T18 Cadastro institucional.
+- [ ] **Profundidade da navegação móvel.** As gavetas M20–M22 resolvem o alcance, mas custam um toque a mais em toda troca de seção. Ver se alguma seção merece atalho fixo.
+- [ ] **`docs/recursos/figma-scripts/lint.mjs` não roda:** lê `../figma-prototipo-estado.json`, nome do repositório anterior; aqui o arquivo é `figma-estado.json`. O conjunto de IDs conhecidos também não inclui `telasMovel`, o que daria falso positivo nas telas móveis. Duas linhas, sem pressa — o protótipo está fechado.
 
 ---
 
