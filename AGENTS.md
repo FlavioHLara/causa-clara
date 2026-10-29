@@ -2,6 +2,17 @@
 
 Contexto para agentes de IA (Claude Code, Copilot, Cursor) trabalharem neste repositório com acurácia e sem retrabalho. **Leia este arquivo inteiro antes de propor qualquer coisa.** Ele responde a maior parte das perguntas de roteamento e registra decisões já fechadas, para que não sejam reabertas.
 
+Não tome atalhos. Não faça concessões. Escolha a perfeição.
+O desafio de resolver problemas de forma elegante é, por si só, a recompensa. O destino, sem a jornada, não tem valor.
+
+Diante de um problema difícil:
+
+1- Pare. Pergunte: qual é a maneira CORRETA de fazer isso?
+
+2- Se a maneira correta for difícil, esse é justamente o ponto. Faça.
+
+3- Se não for possível fazer da maneira correta, admita. Não finja.
+
 ---
 
 ## 1. O que é o projeto
