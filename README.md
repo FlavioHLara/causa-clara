@@ -38,9 +38,51 @@ Protótipo de alta fidelidade no Figma: 19 telas desktop, 19 móveis mais 3 gave
 
 React · Vite · TypeScript · C# · .NET 10 · ASP.NET Core · PostgreSQL · Docker
 
+## Como executar
+
+Requer Docker. O ambiente completo — banco, API e cliente — sobe com um comando:
+
+```bash
+cp .env.example .env
+docker compose up
+```
+
+| Serviço | Endereço |
+|---|---|
+| Cliente | http://localhost:5173 |
+| API | http://localhost:5000 |
+| Documentação interativa da API | http://localhost:5000/scalar/v1 |
+| Documento OpenAPI | http://localhost:5000/openapi/v1.json |
+| Caixa de entrada do ambiente local | http://localhost:8025 |
+
+Toda mensagem que a API enviar em desenvolvimento aparece na caixa de entrada acima e **nenhuma sai para a internet**. Em produção, as mesmas variáveis `Email__*` apontam para um provedor SMTP real.
+
+Para trabalhar sem contêiner:
+
+```bash
+dotnet tool restore          # instala o dotnet-ef fixado pelo repositório
+npm run api:testar           # testes do backend
+npm run web                  # cliente em modo de desenvolvimento
+npm run verificar            # testes do backend e build do cliente
+```
+
 ## Estado
 
-Arquitetura decidida. Implementação ainda não iniciada — ver pendências em [AGENTS.md](AGENTS.md).
+Arquitetura decidida e documentada. Três etapas concluídas:
+
+| Etapa | O que entrou |
+|---|---|
+| **1 — Fundação** | Solução nas quatro camadas, migrações, OpenAPI, ambiente conteinerizado |
+| **2 — Transversais** | Isolamento por instituição, trilha de auditoria, exclusão lógica, paginação |
+| **3 — Acesso** | Cadastro com dois tipos de conta, autenticação, sessão renovável, perfil e redefinição de senha por e-mail, do banco à tela |
+
+São **147 testes**: 24 verificam a separação de camadas que o RNF32 exige, e um conjunto prova que um gestor da instituição A recebe *não encontrado* ao pedir um registro da instituição B pelo identificador — o requisito de maior risco do projeto, coberto antes de existir endpoint que dependa dele.
+
+Os tokens de design do cliente são gerados das variáveis do Figma, com o mesmo nome no design e no código.
+
+A próxima etapa é o vínculo institucional, que destrava tudo que é institucional.
+
+Pendências e decisões abertas em [AGENTS.md](AGENTS.md).
 
 ## Para agentes de IA
 

@@ -1,0 +1,125 @@
+# Requisições do módulo de acesso (RF02 a RF09), para exercitar a API à mão.
+#
+# Com o ambiente de pé (`docker compose up`), execute de cima para baixo: o
+# cadastro cria a conta, a autenticação guarda o token nas variáveis, e as
+# demais chamadas usam esse token.
+
+@api = http://localhost:5000
+@email = flavio@exemplo.com
+@senha = senha-bem-comprida
+
+### Identificação da instância
+
+GET {{api}}/api/saude
+Accept: application/json
+
+### RF02, RF03: criar conta
+
+# @name cadastro
+POST {{api}}/api/contas
+Content-Type: application/json
+
+{
+  "nomeCompleto": "Flávio Henrique Lara Santos",
+  "email": "{{email}}",
+  "telefone": "(31) 99999-0000",
+  "senha": "{{senha}}",
+  "confirmacaoDeSenha": "{{senha}}",
+  "tipo": "Gestor"
+}
+
+### RF04: o mesmo e-mail é recusado, mesmo em outra caixa
+
+POST {{api}}/api/contas
+Content-Type: application/json
+
+{
+  "nomeCompleto": "Outra Pessoa",
+  "email": "FLAVIO@Exemplo.COM",
+  "senha": "outra-senha-comprida",
+  "confirmacaoDeSenha": "outra-senha-comprida",
+  "tipo": "Apoiador"
+}
+
+### RF05: autenticar
+
+# @name sessao
+POST {{api}}/api/sessao
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "senha": "{{senha}}"
+}
+
+###
+@acesso = {{sessao.response.body.tokenDeAcesso}}
+@atualizacao = {{sessao.response.body.tokenDeAtualizacao}}
+
+### RF05: a recusa não diz se o e-mail existe ou se a senha está errada
+
+POST {{api}}/api/sessao
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "senha": "chute-errado-mas-comprido"
+}
+
+### RF07: dados cadastrais
+
+GET {{api}}/api/contas/eu
+Authorization: Bearer {{acesso}}
+
+### RF07: alterar nome e telefone. Tipo de conta não entra, por RN01
+
+PUT {{api}}/api/contas/eu
+Authorization: Bearer {{acesso}}
+Content-Type: application/json
+
+{
+  "nomeCompleto": "Flávio H. L. Santos",
+  "telefone": "(31) 98888-7777"
+}
+
+### RNF11: sem token, 401
+
+GET {{api}}/api/contas/eu
+
+### RF06: renovar a sessão. O token devolvido substitui o anterior
+
+POST {{api}}/api/sessao/renovacao
+Content-Type: application/json
+
+{
+  "tokenDeAtualizacao": "{{atualizacao}}"
+}
+
+### RF09: pedir o link. Responde 202 exista ou não a conta
+
+POST {{api}}/api/senha/redefinicao
+Content-Type: application/json
+
+{
+  "email": "{{email}}"
+}
+
+### RF09: trocar a senha. O token sai da caixa de entrada, em http://localhost:8025
+
+PUT {{api}}/api/senha
+Content-Type: application/json
+
+{
+  "token": "cole-aqui-o-token-do-link-recebido",
+  "senha": "senha-nova-comprida",
+  "confirmacaoDeSenha": "senha-nova-comprida"
+}
+
+### RF08: encerrar a sessão
+
+DELETE {{api}}/api/sessao
+Content-Type: application/json
+
+{
+  "tokenDeAtualizacao": "{{atualizacao}}"
+}

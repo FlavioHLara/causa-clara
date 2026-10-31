@@ -1,0 +1,11 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Zero PackageReference por decisão de arquitetura (RNF32).
+    O Domínio não conhece EF Core nem ASP.NET Core: vazar anotação de
+    persistência para dentro da regra de negócio não é desencorajado,
+    é impossível — o projeto não compilaria. O teste de arquitetura
+    CausaClara.Testes.Arquitetura guarda essa fronteira.
+  -->
+
+</Project>

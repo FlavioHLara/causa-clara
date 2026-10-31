@@ -308,8 +308,10 @@ A API REST de variáveis do Figma é restrita ao plano Enterprise, mas o plano a
 O RNF31 já obriga a expor OpenAPI. Aproveite: gere os tipos TypeScript a partir do documento, com `openapi-typescript`, para `servicos/api-tipos.ts`. Um script na raiz:
 
 ```json
-{ "scripts": { "tipos": "openapi-typescript http://localhost:5000/swagger/v1/swagger.json -o frontend/src/servicos/api-tipos.ts" } }
+{ "scripts": { "tipos": "openapi-typescript http://localhost:5000/openapi/v1.json -o frontend/src/servicos/api-tipos.ts" } }
 ```
+
+> O caminho é `/openapi/v1.json`, e não `/swagger/...`: o .NET 10 gera o documento OpenAPI nativamente e o Swashbuckle saiu do template. Ver seção 16.
 
 Assim um campo renomeado no DTO do backend quebra a compilação do frontend, em vez de quebrar em produção. É o maior ganho prático do monorepo neste projeto.
 
@@ -487,3 +489,128 @@ Greenfield costuma falhar na sequência, não na estrutura. Duas armadilhas espe
 A etapa 4 vem antes de tudo que é institucional porque todo lançamento depende de existir um vínculo aprovado — sem ela, não há contexto de instituição para o filtro global resolver.
 
 A etapa 8 é a mais longa e a mais arriscada: concentra cinco regras de negócio sobre a mesma operação. Convém reservar folga e escrever os testes de unidade do domínio junto, não depois.
+
+---
+
+## 16. Divergências entre este projeto e a implementação
+
+Registradas na etapa 1 (29/10/2026). Nenhuma altera decisão estruturante; todas são ajustes de detalhe que a ferramenta ou a convenção do repositório impuseram. Mantidas aqui para que este documento continue descrevendo o que existe.
+
+| Onde | Este documento diz | O que foi implementado | Por quê |
+|---|---|---|---|
+| Arquivo de solução | `CausaClara.sln` | `CausaClara.slnx` | É o padrão do SDK .NET 10. Formato XML sem GUID, legível e que não gera conflito de merge. Manter o padrão do SDK fixado pelo RNF38 é a escolha de menor risco. |
+| `IContextoDeDados` | `SaveChangesAsync`, `IniciarTransacaoAsync` | `SalvarAlteracoesAsync`, `IniciarTransacaoAsync` | A seção 3 do AGENTS.md exige português em método, sem exceção. `ContextoDeDados` faz a ponte para o `SaveChangesAsync` do EF numa linha. |
+| Documentação da API | `/swagger/v1/swagger.json` | `/openapi/v1.json` e interface em `/scalar/v1` | O .NET 10 traz geração de OpenAPI nativa; o Swashbuckle deixou de vir no template. A interface interativa que o RNF31 pede fica por conta do Scalar, que lê o documento nativo. **O script de geração de tipos da seção 9 precisa apontar para o novo caminho.** |
+| Raiz do backend | — | `Directory.Build.props` e `Directory.Packages.props` | Alvo, análise e versões de pacote num lugar só, em vez de repetidos nos sete `.csproj`. `TreatWarningsAsErrors` ligado. |
+| Raiz do repositório | — | `.config/dotnet-tools.json` | `dotnet-ef` fixado como ferramenta local, para que a versão da ferramenta seja versionada junto com o código. Depois de clonar: `dotnet tool restore`. |
+| Nomes no banco | `snake_case` por mapeamento | `EFCore.NamingConventions` | Traduz `NomeCompleto` em `nome_completo` por convenção. A alternativa seria uma centena de `HasColumnName`, que é superfície de erro de digitação sem ganho. |
+| Migração inicial | — | Apenas `usuarios` e `instituicoes` | O modelo de dados definitivo ainda é pendência aberta. Gerar o esquema inteiro agora seria exatamente a migração errada que custa caro depois. Cada etapa acrescenta suas tabelas. |
+| Aplicação de migrações | — | `AplicarMigracoesPendentesAsync()` chamada por configuração | Para que `docker compose up` entregue banco e esquema prontos (RNF33). Mora na Persistência, não em `Program.cs`, senão o EF Core vazaria para a Api e o teste de arquitetura reprovaria. |
+| Locale do PostgreSQL | — | Sem `POSTGRES_INITDB_ARGS` | Fixar `pt_BR.UTF-8` no cluster depende de a imagem ter a locale gerada, o que não vale para a variante alpine nem para todo provedor. A ordenação em português importa em poucas colunas e será resolvida por collation ICU por coluna. |
+
+### Decisão: os comprovantes ficam no PostgreSQL, em `bytea`
+
+Lacuna encontrada na revisão de 29/10/2026 e fechada aqui. O projeto arquitetural não dizia onde o arquivo do RF42 é guardado, e essa omissão ameaçava o RF67 — que promete acesso público ao comprovante — de um jeito silencioso.
+
+**O que elimina a opção óbvia.** Gravar no sistema de arquivos do contêiner não funciona: em tier gratuito o disco é efêmero, e o comprovante some na próxima publicação. O sistema continuaria subindo, a despesa continuaria listada, e só o link do comprovante quebraria. Como a prestação de contas é o objetivo do trabalho, comprovante que desaparece não é defeito de infraestrutura, é perda da tese.
+
+**As duas alternativas reais.**
+
+| | `bytea` no PostgreSQL | Objeto externo (R2, Supabase, B2) |
+|---|---|---|
+| Custo (RNF40) | Nenhum. Já existe banco. | Nenhum no papel, mais um tier gratuito para depender. |
+| Atomicidade (RNF25) | Despesa e comprovante na mesma transação. | Duas escritas sem transação comum: ou sobra arquivo órfão, ou sobra linha apontando para arquivo que não existe. Exige rotina de reconciliação. |
+| Integridade (RNF27) | Chave estrangeira de verdade. | Referência por texto, sem garantia do banco. |
+| Backup | Um só, o do banco. | Dois, que precisam estar consistentes entre si. |
+| Segredos (RNF18) | Nenhum a mais. | Chave de acesso do provedor. |
+| `docker compose up` (RNF33) | Sem contêiner novo. | Exige um MinIO local para o ambiente ser fiel. |
+| Crescimento | Infla o banco e seus backups. | Não infla. |
+
+**Decisão: `bytea`.** O que torna isso seguro é o próprio RNF17: o limite de cinco megabytes por arquivo cria um teto previsível. O TOAST do PostgreSQL lida bem com valores desse tamanho, e o tier gratuito de 1 GB comporta alguns milhares de comprovantes — muito além do que o trabalho precisa demonstrar e do que uma organização pequena acumula em anos. Em troca, elimina-se uma classe inteira de falhas: arquivo órfão, referência quebrada, backup inconsistente e um provedor a mais que pode mudar de termos antes da defesa.
+
+**Três condições que fazem parte da decisão:**
+
+1. **Tabela separada.** Os bytes ficam em `comprovantes`, com relação de um para um com `despesas`, e não numa coluna de `despesas`. Assim nenhuma consulta de listagem carrega o conteúdo por engano — o erro clássico dessa abordagem é um `SELECT *` que arrasta megabytes para montar uma tabela de cinco linhas.
+2. **Tipo verificado pelo conteúdo.** RNF17 exige verificar o tipo real, então a validação lê os bytes iniciais do arquivo. Extensão e cabeçalho enviados pelo cliente são declaração do cliente, não prova.
+3. **A Aplicação fala com uma interface.** O caso de uso depende de `IArmazenamentoDeComprovantes`, não do banco. Se um dia o volume justificar objeto externo, troca-se a implementação na Persistência e nada mais. A decisão é reversível por construção — e é por isso que ela pode ser tomada agora, sem travar o projeto.
+
+> A interface e a tabela **não** foram criadas nesta etapa. Criá-las agora seria abstração especulativa: elas nascem na etapa 7, junto com RF41 a RF44, que é quando existe despesa para anexar comprovante. O que está fechado é a decisão, não o código.
+
+### Divergências e descobertas da etapa 3
+
+| Onde | O que foi implementado | Por quê |
+|---|---|---|
+| Serialização de enum | Enum viaja como texto na API: `"Gestor"`, não `1` | O padrão do `System.Text.Json` é numérico, o que obrigaria o cliente a conhecer a ordem dos membros. Reordenar o enum mudaria o significado dos dados em trânsito **sem quebrar compilação nenhuma**. Texto também alinha a API ao banco, onde o enum já é texto com `CHECK`, e deixa o documento OpenAPI legível. Encontrado exercitando a API de verdade: o cadastro recusava `"Gestor"` com 400. |
+| `TiposDeClaim` | Subiu da Api para a Aplicação | Dois lados precisam combinar — quem emite o token, na Infraestrutura, e quem o lê, na Api. Com a constante duplicada, divergir era questão de tempo. |
+| Tolerância de relógio na validação | 30 segundos, em vez dos 5 minutos padrão | O padrão da biblioteca estenderia na prática o teto de validade do RNF13. |
+| Projeto de teste | `CausaClara.Testes.Integracao` ganhou o fluxo de acesso sobre SQLite | Cadastro, sessão e redefinição são exercitados com as implementações **reais** de resumo de senha e de segredo; só relógio, e-mail e emissor de token são substituídos. |
+
+### Divergências e descobertas da etapa 2
+
+| Onde | Este documento diz | O que foi implementado | Por quê |
+|---|---|---|---|
+| Filtro global | `HasQueryFilter` escrito por entidade em `OnModelCreating` | Convenção que varre o modelo e aplica aos marcadores | Lista escrita à mão tem o mesmo defeito do `if` por endpoint: funciona até alguém esquecer uma linha. |
+| Filtro global | `d.InstituicaoId == _contexto.InstituicaoId`, com `_contexto` sendo o serviço | A expressão referencia `InstituicaoDaRequisicao`, **membro do `DbContext`** | Ver abaixo — a forma do documento não funciona. |
+| Exclusão lógica | Filtro próprio | Composto com o de instituição por `&&`, numa expressão só | Dois `HasQueryFilter` na mesma entidade substituem em vez de somar, e perder o isolamento em silêncio é o pior defeito possível aqui. |
+| Projetos de teste | Três | Quatro: entrou `CausaClara.Testes.Aplicacao` | A Aplicação passou a ter lógica própria para testar — a normalização de paginação do RNF09. Pôr isso em "Integração" descreveria errado o que o teste é. |
+| Teste de isolamento | "Entra quando houver entidade de instituição" | Já existe, com entidade de fixação em SQLite | O requisito de maior risco não precisa esperar a etapa 4 para ter teste. O que é específico do PostgreSQL continua verificado no compose. |
+
+#### A armadilha do filtro global, que o projeto previa sem saber a forma exata
+
+A seção 4 avisa que "o filtro deve ler o contexto no momento da consulta". O aviso está certo, mas a forma proposta — a expressão referenciar o serviço `IContextoDaRequisicao` — **não produz esse efeito**. O EF Core só transforma em parâmetro da consulta o acesso a um membro de instância do próprio `DbContext`; qualquer outro objeto capturado é tratado como subexpressão constante e avaliado **uma única vez**, na primeira compilação daquela consulta.
+
+Na prática: a primeira requisição que compilasse a consulta congelaria sua instituição — ou, como aconteceu aqui, o `null` do momento em que o cenário foi montado — para todas as requisições seguintes. O sistema continuaria subindo e respondendo. As listagens é que viriam erradas, com dado de outra instituição ou com nada.
+
+A correção é o contexto expor a propriedade e a convenção referenciá-la:
+
+```csharp
+internal int? InstituicaoDaRequisicao => contextoDaRequisicao.InstituicaoId;
+```
+
+O defeito foi encontrado pelo teste escrito justamente para a ressalva da seção 4, antes de qualquer entidade real depender do filtro. É o argumento prático a favor de construir os transversais na etapa 2, e não depois de quarenta endpoints.
+
+### Decisão: e-mail por SMTP, com captura local no ambiente de desenvolvimento
+
+Segunda lacuna da revisão de 29/10/2026, fechada antes da etapa 3. RF09 e RF24 dependem de enviar e-mail — redefinição de senha e aviso de decisão sobre vínculo —, e não havia serviço de e-mail em nenhum documento nem no compose.
+
+**SMTP, e não a API HTTP de um provedor.** Os dois funcionam e custam zero no tier gratuito. A diferença é o que acontece quando o provedor muda de termos, de preço ou simplesmente sai do ar: com SMTP, trocar de fornecedor é trocar variáveis de ambiente; com a API de um fornecedor, é reescrever o adaptador. Num trabalho que precisa continuar funcionando até a defesa e depois dela, portabilidade vale mais do que os recursos extras que uma API proprietária oferece — nenhum deles é exigido por requisito.
+
+**MailKit, e não `System.Net.Mail.SmtpClient`.** A própria Microsoft desaconselha o `SmtpClient` para código novo, por não acompanhar TLS e autenticação modernos, e aponta o MailKit como substituto. É mantido pela .NET Foundation.
+
+**Captura local no compose, em vez de enviar de verdade em desenvolvimento.** Um contêiner de captura fala SMTP como um servidor real, mostra a caixa de entrada no navegador e não entrega nada para fora. Isso torna RF09 e RF24 demonstráveis sem cadastrar provedor, sem credencial no ambiente de desenvolvimento e sem risco de disparar mensagem para endereço de pessoa real durante um teste. Em produção o serviço não sobe: as mesmas variáveis `Email__*` apontam para o provedor.
+
+**Onde o código mora: projeto novo `CausaClara.Infraestrutura`.** O documento previa quatro projetos, e enviar e-mail não cabe em nenhum deles — não é persistência, não é regra de negócio, e pôr um cliente SMTP na Api misturaria HTTP com adaptador externo. O projeto segue o mesmo padrão da Persistência: a Api o referencia só no composition root, para chamar `AdicionarInfraestrutura()`, e testes de arquitetura garantem que nem a Api nem a Aplicação nem o Domínio dependem de MailKit. A geração de PDF das etapas 9 e 10 é o próximo morador.
+
+**Três detalhes que fazem parte da decisão:**
+
+1. **A configuração é verificada na inicialização**, não no primeiro envio. Descobrir que o servidor nunca foi configurado no momento em que alguém pede redefinição de senha é tarde demais: o usuário fica esperando uma mensagem que nunca sai. As mensagens de erro nomeiam a variável de ambiente a corrigir.
+2. **O envio acontece depois da gravação, nunca dentro da transação.** Servidor de e-mail fora do ar não pode desfazer a aprovação de um vínculo que já foi decidida. O contrato lança exceção e documenta, por requisito, quem deve propagar e quem deve apenas registrar — no RF09, em particular, a resposta ao usuário é sempre a mesma, tenha o endereço existido ou não, para não revelar quais e-mails estão cadastrados.
+3. **O endereço vai mascarado para o log** (`f*****@exemplo.com`). Endereço de e-mail é dado pessoal (RNF19), e arquivo de log costuma viver fora dos controles de acesso do banco. O log precisa permitir diagnosticar um envio, não reconstruir a base de usuários.
+
+> Os modelos de mensagem de RF09 e RF24 **não** foram escritos nesta etapa: eles nascem com os casos de uso que os enviam, nas etapas 3 e 4.
+
+### Decisão: desenho de autenticação e autorização
+
+Pendência aberta desde o projeto arquitetural, fechada na etapa 3.
+
+**Resumo da senha: PBKDF2-HMAC-SHA512, 100 mil iterações, sal de 128 bits** (RNF10), pelo `PasswordHasher` do ASP.NET Core. Três razões para preferi-lo ao bcrypt e a implementações próprias: o formato é versionado, e a conferência avisa quando um resumo foi produzido com parâmetros antigos — o que permite **aumentar o custo do algoritmo com o tempo sem obrigar ninguém a trocar de senha**, já que o resumo é refeito no acesso seguinte; não há o truncamento em 72 bytes do bcrypt, no qual senha longa vira senha curta em silêncio; e vem num pacote pequeno da Microsoft, sem arrastar o Identity inteiro.
+
+**Credencial de acesso: JWT com HMAC-SHA256, uma hora de validade.** Assinatura simétrica porque há um único emissor e um único verificador, o mesmo processo — par de chaves serve quando terceiros precisam validar sem poder emitir, o que não acontece aqui.
+
+**O que entra no token:** identificador do usuário e tipo de conta, que são fatos imutáveis (RN01). O vínculo institucional também viaja nele, e isso tem uma consequência que precisa estar escrita: **revogar um vínculo só tem efeito pleno quando o token em uso expira**. Duas medidas limitam a janela — a vida curta da credencial, e o fato de que revogar um vínculo revoga também as sessões do usuário, impedindo a renovação. A alternativa, resolver o vínculo no banco a cada requisição, foi descartada porque o `DbContext` depende do contexto da requisição para montar o filtro global: fazer o contexto consultar o banco criaria uma dependência circular.
+
+**Sessão: token de renovação opaco, guardado só como resumo, de uso único e rotativo.** Oito horas de validade absoluta, que é o teto do RNF13 — renovar emite credencial nova **dentro** do prazo original, nunca o estica. Isso dá três propriedades: encerrar sessão (RF08) é efetivo no servidor, e não apenas o cliente esquecendo o token; uma cópia vazada deixa de servir assim que o dono legítimo renova; e trocar a senha derruba as sessões abertas, que é o que alguém espera ao trocar a senha por suspeita de acesso indevido.
+
+**Gestor sem vínculo** autentica normalmente e recebe token sem a *claim* de instituição. O filtro global não casa com nada, então ele enxerga zero lançamentos — a falha fecha. É também o estado que leva à tela de primeiro acesso (RF10), na etapa 4.
+
+**Três decisões sobre o que não se revela:**
+
+1. **A recusa de acesso não diz se o e-mail existe.** A mensagem é a mesma para endereço desconhecido e senha errada. Mais: quando o e-mail não existe, o servidor confere a senha contra um resumo de referência, para que o tempo de resposta não entregue a diferença.
+2. **O pedido de redefinição responde a mesma coisa sempre**, tenha a conta existido ou não, e falha de envio também não vaza — fica no log. A rota é aberta; responder "e-mail não encontrado" a transformaria num verificador de quem tem conta.
+3. **O endereço vai mascarado para o log** (RNF19), e o link de redefinição vale trinta minutos, de uso único, porque o segredo viaja por e-mail — canal fora do nosso controle.
+
+> O vínculo institucional ainda não é resolvido: a entidade que o define nasce na etapa 4. Até lá o token sai sem a *claim* de instituição, e o ponto onde ela entra está marcado no código.
+
+### O teste de arquitetura ficou mais forte do que o previsto
+
+A seção 3 propõe verificar que `Api.Controllers` não depende de EF Core. Como `AdicionarPersistencia()` encapsula todo o registro, foi possível afirmar algo mais forte e igualmente verdadeiro: **nenhum tipo da Api inteira depende de EF Core ou de Npgsql**, nem fora dos controllers. São catorze testes, incluindo uma guarda contra aprovação por vacuidade — sem ela, apagar todos os controllers deixaria os testes de fronteira verdes por não terem o que verificar.

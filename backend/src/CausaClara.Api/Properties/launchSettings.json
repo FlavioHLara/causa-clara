@@ -1,0 +1,21 @@
+﻿{
+  "$schema": "https://json.schemastore.org/launchsettings.json",
+  "profiles": {
+    "http": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": false,
+      "applicationUrl": "http://localhost:5000",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ConnectionStrings__Postgres": "Host=localhost;Port=5433;Database=causa_clara;Username=causa_clara;Password=troque-esta-senha",
+        "Email__Servidor": "localhost",
+        "Email__Porta": "1025",
+        "Email__Seguranca": "Nenhuma",
+        "Email__RemetenteEndereco": "nao-responda@causaclara.local",
+        "Token__Chave": "chave-de-desenvolvimento-com-no-minimo-32-caracteres",
+        "AplicarMigracoesNaInicializacao": "true"
+      }
+    }
+  }
+}

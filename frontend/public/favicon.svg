@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Causa Clara">
+  <!-- Marca provisória: a inicial sobre a cor de ação da paleta (roxo/300).
+       Substituir quando houver símbolo desenhado no Figma. -->
+  <rect width="32" height="32" rx="7" fill="#8B86E8" />
+  <path
+    d="M21.2 11.4a7 7 0 1 0 0 9.2"
+    fill="none"
+    stroke="#15181D"
+    stroke-width="3.2"
+    stroke-linecap="round"
+  />
+</svg>

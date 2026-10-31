@@ -1,0 +1,75 @@
+<Project>
+
+  <!--
+    Gerenciamento central de pacotes: a versão é declarada aqui, e cada .csproj
+    referencia o pacote sem versão. Um pacote, uma versão, em toda a solução.
+  -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+
+  <ItemGroup Label="API e documentação (RNF31)">
+    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.14" />
+    <!--
+      Fixado por segurança: o template do SDK trazia Microsoft.OpenApi 2.0.0,
+      que tem vulnerabilidade conhecida de severidade alta (GHSA-v5pm-xwqc-g5wc,
+      aviso NU1903). O Microsoft.AspNetCore.OpenApi 10.0.14 exige >= 2.12.2;
+      fixamos explicitamente para que a correção não dependa de resolução transitiva.
+    -->
+    <PackageVersion Include="Microsoft.OpenApi" Version="2.13.0" />
+    <PackageVersion Include="Scalar.AspNetCore" Version="2.18.5" />
+  </ItemGroup>
+
+  <ItemGroup Label="Persistência (RNF35, RNF39)">
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.14" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.14" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.14" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
+    <!--
+      Traduz PascalCase do C# para snake_case do banco (AGENTS.md seção 3:
+      tabelas e colunas em snake_case português). Uma linha de configuração
+      determinística em vez de uma centena de HasColumnName manuais, que são
+      superfície de erro de digitação. Mantido pelo autor do Npgsql.
+    -->
+    <PackageVersion Include="EFCore.NamingConventions" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="10.0.14" />
+  </ItemGroup>
+
+  <ItemGroup Label="Infraestrutura externa">
+    <!--
+      Envio de e-mail (RF09, RF24). A própria Microsoft desaconselha
+      System.Net.Mail.SmtpClient para código novo — ele não acompanha TLS e
+      autenticação modernos — e aponta o MailKit como substituto. É mantido
+      pela .NET Foundation.
+    -->
+    <PackageVersion Include="MailKit" Version="4.18.2" />
+    <!-- Liga OpcoesDeEmail à seção de configuração e permite validar na subida. -->
+    <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.14" />
+    <!--
+      PasswordHasher: PBKDF2-HMAC-SHA512 com sal individual (RNF10). Pacote
+      pequeno, sem arrastar o ASP.NET Core Identity inteiro.
+    -->
+    <PackageVersion Include="Microsoft.Extensions.Identity.Core" Version="10.0.14" />
+    <!-- Emissão e validação da credencial assinada (RNF13). -->
+    <PackageVersion Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.23.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.14" />
+  </ItemGroup>
+
+  <ItemGroup Label="Testes">
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageVersion Include="xunit" Version="2.9.3" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.4" />
+    <PackageVersion Include="coverlet.collector" Version="6.0.4" />
+    <PackageVersion Include="NetArchTest.Rules" Version="1.3.2" />
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.14" />
+    <!--
+      SQLite em memória para exercitar filtros globais e interceptador de verdade,
+      executando SQL real, sem depender de um PostgreSQL de pé. O que é específico
+      do PostgreSQL — xmin, timestamptz — continua sendo verificado no ambiente
+      do compose, não aqui.
+    -->
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.14" />
+  </ItemGroup>
+
+</Project>

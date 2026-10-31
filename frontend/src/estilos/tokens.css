@@ -1,0 +1,77 @@
+/*
+ * Tokens de design — gerados das variáveis do Figma.
+ *
+ * Os nomes aqui são exatamente o "code syntax" definido em cada variável do
+ * arquivo stQ02xCuTeByDjDGdAT574, de modo que o token tenha o mesmo nome no
+ * design e no código. Quando a cor primária mudar no Figma, muda aqui e desce
+ * para toda a interface.
+ *
+ * NÃO edite valores à mão: ajuste a variável no Figma e regenere.
+ */
+
+:root {
+  /* ---------- Cor: ação ---------- */
+  /* roxo/300. Cor de ação, com TEXTO ESCURO: 5,65:1. Branco sobre ela dá
+     3,15:1 e reprovaria no AA (RNF07). Ver docs/04-estudo-de-cor.html. */
+  --cor-primaria: #8b86e8;
+  --cor-primaria-pressionada: #5b52c9;  /* roxo/600 */
+  --cor-primaria-escura: #5b52c9;       /* roxo/600 */
+  --cor-primaria-suave: #edebfb;        /* roxo/100 */
+
+  /* ---------- Cor: texto ---------- */
+  --cor-texto-principal: #15181d;       /* tinta/900 */
+  --cor-texto-secundario: #4a515c;      /* tinta/600 */
+  --cor-texto-apoio: #7b8392;           /* tinta/400 */
+  --cor-texto-acento: #403a96;          /* roxo/700, 9,28:1 sobre fundo claro */
+  --cor-texto-sobre-primaria: #ffffff;
+
+  /* ---------- Cor: superfície ---------- */
+  --cor-fundo-aplicacao: #f6f7f9;       /* fundo/100 */
+  --cor-fundo-superficie: #ffffff;      /* fundo/0 */
+  --cor-borda-padrao: #d7dbe2;          /* linha/300 */
+  --cor-borda-acento: #5b52c9;          /* roxo/600 */
+
+  /* ---------- Cor: semântica ----------
+     Os três pares sempre acompanhados de ícone e rótulo textual, nunca só
+     cor (RNF08). */
+  --cor-critico: #b4231b;
+  --cor-critico-suave: #fbe9e7;
+  --cor-critico-texto: #b4231b;
+  --cor-atencao: #b4530b;
+  --cor-atencao-suave: #fdf0e3;
+  --cor-atencao-texto: #b4530b;
+  --cor-entrada: #1d6fa8;
+  --cor-entrada-suave: #e6f1f8;
+  --cor-entrada-texto: #1d6fa8;
+
+  /* ---------- Espaçamento: escala de 4 px ---------- */
+  --esp-4: 4px;
+  --esp-8: 8px;
+  --esp-12: 12px;
+  --esp-16: 16px;
+  --esp-24: 24px;
+  --esp-32: 32px;
+  --esp-48: 48px;
+  --esp-64: 64px;
+
+  /* ---------- Raio ---------- */
+  --raio-campo: 6px;
+  --raio-cartao: 12px;
+  --raio-etiqueta: 999px;
+
+  /* ---------- Tipografia ----------
+     Família Inter, a mesma do protótipo. Os tamanhos seguem a tabela da
+     seção 4 de docs/03-prototipo.md. */
+  --fonte: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  --texto-titulo-tela: 600 28px/34px var(--fonte);
+  --texto-titulo-secao: 600 20px/26px var(--fonte);
+  --texto-titulo-cartao: 600 16px/22px var(--fonte);
+  --texto-corpo: 400 14px/21px var(--fonte);
+  --texto-corpo-forte: 600 14px/21px var(--fonte);
+  --texto-apoio: 400 12px/17px var(--fonte);
+
+  /* ---------- Layout ---------- */
+  --largura-maxima-conteudo: 1180px;
+  --largura-barra-lateral: 248px;
+}

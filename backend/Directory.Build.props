@@ -1,0 +1,26 @@
+<Project>
+
+  <!--
+    Propriedades comuns a todos os projetos do backend.
+    Centralizar aqui evita divergência entre os sete .csproj.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+
+    <!-- Aviso não corrigido é defeito adiado. -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+
+    <!--
+      RNF06 e RNF28: a globalização precisa estar disponível para formatar
+      moeda e data em pt-BR nas exportações de CSV e PDF (RF72, RF80).
+      InvariantGlobalization=true quebraria isso silenciosamente.
+    -->
+    <InvariantGlobalization>false</InvariantGlobalization>
+    <NeutralLanguage>pt-BR</NeutralLanguage>
+  </PropertyGroup>
+
+</Project>

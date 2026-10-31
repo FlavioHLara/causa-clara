@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <!--
+      Acoplamento aceito e explícito: IContextoDeDados expõe DbSet<T> e
+      IDbContextTransaction. A Aplicação conhece as ABSTRAÇÕES do EF Core,
+      nunca o provedor (Npgsql) nem o contexto concreto.
+    -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CausaClara.Dominio\CausaClara.Dominio.csproj" />
+  </ItemGroup>
+
+</Project>

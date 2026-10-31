@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="EFCore.NamingConventions" />
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" />
+    <!--
+      Ferramenta de tempo de projeto, exigida por `dotnet ef`. Fica aqui, e não na
+      Api, porque FabricaDeContextoEmTempoDeProjeto permite gerar migrações sem
+      envolver o projeto de inicialização. PrivateAssets="all" impede que vaze
+      para quem referencia a Persistência e mantém o pacote fora da publicação.
+    -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CausaClara.Aplicacao\CausaClara.Aplicacao.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      FiltrosGlobais é interno: é detalhe de como esta camada cumpre o RNF12,
+      não contrato para quem consome. Os testes precisam alcançá-lo para montar
+      um modelo de teste com a mesma convenção — tornar o tipo público só para
+      testar exporia a implementação a todo o resto da solução.
+    -->
+    <InternalsVisibleTo Include="CausaClara.Testes.Integracao" />
+  </ItemGroup>
+
+</Project>

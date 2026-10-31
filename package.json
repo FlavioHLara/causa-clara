@@ -1,0 +1,29 @@
+{
+  "name": "causa-clara",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Gestão administrativa e transparência financeira para organizações da sociedade civil",
+  "scripts": {
+    "ambiente": "docker compose up --build",
+    "ambiente:parar": "docker compose down",
+    "ambiente:limpar": "docker compose down --volumes",
+
+    "api": "dotnet run --project backend/src/CausaClara.Api",
+    "api:compilar": "dotnet build backend/CausaClara.slnx",
+    "api:testar": "dotnet test backend/CausaClara.slnx",
+
+    "web": "npm run dev --prefix frontend",
+    "web:compilar": "npm run build --prefix frontend",
+
+    "migracao:criar": "dotnet ef migrations add --project backend/src/CausaClara.Persistencia --output-dir Migrations",
+    "migracao:aplicar": "dotnet ef database update --project backend/src/CausaClara.Persistencia",
+    "migracao:script": "dotnet ef migrations script --project backend/src/CausaClara.Persistencia --idempotent",
+
+    "verificar": "npm run api:testar && npm run web:compilar"
+  },
+  "comentarios": {
+    "orquestracao": "Scripts npm na raiz bastam para um monorepo de um pacote JS e uma solução .NET. Nx e Turborepo resolvem grafos de dezenas de pacotes, problema que este projeto não tem.",
+    "migracao": "dotnet-ef é ferramenta local, fixada em .config/dotnet-tools.json. Rode 'dotnet tool restore' depois de clonar.",
+    "verificar": "Roda o que a lista de conferência do AGENTS.md exige antes de propor mudança."
+  }
+}

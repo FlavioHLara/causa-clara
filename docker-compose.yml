@@ -1,0 +1,106 @@
+# RNF33: o ambiente completo — banco, API e cliente — sobe com um único comando.
+#
+#   cp .env.example .env
+#   docker compose up
+#
+# O arquivo fica na raiz de propósito: dentro de infra/ o comando viraria
+# `docker compose -f infra/docker-compose.yml up`, que já não é um comando único.
+
+name: causa-clara
+
+services:
+
+  banco:
+    image: postgres:17-alpine
+    container_name: causa-clara-banco
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      # Sem POSTGRES_INITDB_ARGS de propósito. Fixar pt_BR.UTF-8 no cluster
+      # depende de a imagem ter a locale gerada, o que não vale para a variante
+      # alpine nem para todo provedor de hospedagem — quebraria o "um comando"
+      # do RNF33 de forma difícil de diagnosticar. A ordenação em português
+      # importa em poucas colunas (nome de instituição, nome de item), e o lugar
+      # certo de resolver isso é uma collation ICU por coluna, decidida quando
+      # RF26 e RF49 forem implementados.
+    ports:
+      # Publicada em 5433 por padrão: a 5432 costuma estar ocupada por um
+      # PostgreSQL local. Ver .env.example.
+      - "${PORTA_BANCO:-5433}:5432"
+    volumes:
+      - dados-do-postgres:/var/lib/postgresql/data
+    healthcheck:
+      # A API só começa depois que o banco aceita conexão, e não apenas depois
+      # que o contêiner existe. Sem isto, a primeira subida falha por corrida.
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+  # Captura de e-mail do ambiente local: fala SMTP como um servidor de verdade e
+  # não entrega nada para fora. É o que torna RF09 e RF24 demonstráveis sem
+  # cadastrar provedor e sem risco de disparar mensagem para endereço real.
+  # Em produção este serviço não sobe: as variáveis Email__* apontam para o
+  # provedor, e nada mais muda.
+  email:
+    image: axllent/mailpit:v1.21
+    container_name: causa-clara-email
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: "1"
+      MP_SMTP_AUTH_ALLOW_INSECURE: "1"
+      MP_MAX_MESSAGES: "500"
+    ports:
+      # Caixa de entrada no navegador.
+      - "${PORTA_EMAIL:-8025}:8025"
+      # SMTP publicado para quem roda a API fora do contêiner e aponta
+      # Email__Servidor para localhost.
+      - "${PORTA_EMAIL_SMTP:-1025}:1025"
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: causa-clara-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      ASPNETCORE_HTTP_PORTS: "8080"
+      # RNF18: o segredo vem do .env, que não está versionado.
+      ConnectionStrings__Postgres: "Host=banco;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+      # RNF35: o esquema é aplicado na subida, para que um comando baste.
+      AplicarMigracoesNaInicializacao: "true"
+      # RF09 e RF24. Em produção estes mesmos nomes apontam para o provedor.
+      Email__Servidor: email
+      Email__Porta: "1025"
+      Email__Seguranca: Nenhuma
+      Email__RemetenteEndereco: ${EMAIL_REMETENTE:-nao-responda@causaclara.local}
+      Email__RemetenteNome: Causa Clara
+      # RNF13 e RNF18: chave de assinatura do token, vinda do .env.
+      Token__Chave: ${TOKEN_CHAVE}
+      Token__ValidadeEmMinutos: "60"
+      # RF09: para onde o link de redefinição aponta.
+      Acesso__UrlBaseDoCliente: ${URL_DO_CLIENTE:-http://localhost:5173}
+    depends_on:
+      banco:
+        condition: service_healthy
+      email:
+        condition: service_started
+    ports:
+      - "${PORTA_API:-5000}:8080"
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: causa-clara-web
+    depends_on:
+      - api
+    ports:
+      - "${PORTA_WEB:-5173}:80"
+    restart: unless-stopped
+
+volumes:
+  dados-do-postgres:

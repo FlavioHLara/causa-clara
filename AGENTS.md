@@ -43,9 +43,93 @@ O sistema resolve dois problemas acoplados do terceiro setor: a gestão administ
 | Diagramas de caso de uso e ER | Prontos |
 | Protótipo de alta fidelidade no Figma | Pronto e navegável — 19 telas desktop, 19 móveis mais 3 gavetas de menu, 94 ligações, sem tela órfã |
 | Projeto arquitetural | Decidido e documentado |
-| Código | **Não iniciado** |
+| Código — etapa 1, Fundação | **Concluída** — solução, quatro camadas, migração inicial, OpenAPI, compose verificado |
+| Código — etapa 2, Transversais | **Concluída** — filtro global, auditoria, exclusão lógica, paginação |
+| Código — etapa 3, Acesso | **Concluída** — servidor e as telas T01 e T02, verificadas no navegador contra a API real |
+| Código — etapa 4 em diante | Não iniciado |
 
-Não há código neste repositório ainda. A próxima ação é a etapa 1 da ordem de construção (seção 14 de `docs/05-arquitetura.md`).
+A próxima ação é a **etapa 4, Vínculo institucional** (RF10–RF24). Ela é o que destrava tudo que é institucional: sem vínculo aprovado não há contexto de instituição para o filtro global resolver.
+
+### O que a etapa 1 entregou
+
+- `backend/` com `CausaClara.slnx` e sete projetos: Dominio, Aplicacao, Persistencia, Api, mais Testes.Arquitetura, Testes.Dominio e Testes.Integracao
+- `Directory.Build.props` e `Directory.Packages.props`: alvo, análise e versões de pacote centralizados, com `TreatWarningsAsErrors`
+- Domínio de `Usuario` e `Instituicao` — só o que a migração inicial exige; nada de abstração especulativa
+- `IContextoDeDados` na Aplicação; `ContextoDeDados` e mapeamentos na Persistência
+- Migração `Inicial` gerada: `usuarios` e `instituicoes` em snake_case português, `timestamptz`, CHECK no enum, índices únicos de RF04 e RF13
+- Api com OpenAPI, Scalar em desenvolvimento, tratadores de exceção em português e sondas `/saude/vivo` e `/saude/pronto`
+- `frontend/` em React 19 + Vite 8 + TypeScript (RNF37)
+- `docker-compose.yml` na raiz com banco, api e web (RNF33), verificado de ponta a ponta
+
+### O que a etapa 2 entregou
+
+- `IContextoDaRequisicao` lido das *claims*, implementado na Api (`Autenticacao/ContextoDaRequisicao.cs`)
+- **Filtro global por convenção** (`Persistencia/Convencoes/FiltrosGlobais.cs`): varre o modelo e aplica isolamento por instituição e exclusão lógica numa expressão única, composta com `&&`
+- **`InterceptadorDeAuditoria`**: grava a trilha do RF81 e converte exclusão em exclusão lógica (RN10), lendo o estado original antes de converter
+- `RegistroDeAuditoria` e a tabela `auditoria`, com autor anulável para não brigar com o RNF21
+- `ParametrosListagem` e `PaginaResposta<T>` com o teto de cem do RNF09 aplicado no servidor
+- Testes de domínio, de aplicação e de integração cobrindo isolamento, auditoria e exclusão lógica
+
+O teste de isolamento — gestor da instituição A pedindo registro da instituição B pelo identificador e recebendo *não encontrado* — roda contra SQLite em memória, com SQL de verdade, e não espera a etapa 4.
+
+### O que a etapa 3 entregou, no servidor
+
+Módulo `Acesso` nas quatro camadas, cobrindo RF02 a RF09:
+
+| Rota | RF | Observação |
+|---|---|---|
+| `POST /api/contas` | RF02, RF03, RF04 | Aberta. Tipo de conta escolhido aqui não muda (RN01) |
+| `GET /api/contas/eu` | RF07 | Exige token |
+| `PUT /api/contas/eu` | RF07 | Nome e telefone; tipo não é parâmetro |
+| `POST /api/sessao` | RF05 | Aberta |
+| `POST /api/sessao/renovacao` | RF06 | Token de uso único, rotativo |
+| `DELETE /api/sessao` | RF08 | Devolve 204 mesmo com token já inválido |
+| `POST /api/senha/redefinicao` | RF09 | Devolve 202 sempre, exista ou não a conta |
+| `PUT /api/senha` | RF09 | Derruba as sessões abertas do usuário |
+
+**Pontos que não são óbvios e têm teste:**
+
+- O resumo da senha é **refeito automaticamente** quando foi gerado com parâmetros antigos, no acesso seguinte. Permite endurecer o algoritmo sem forçar troca de senha.
+- A recusa de acesso usa **a mesma mensagem** para e-mail inexistente e senha errada, e confere a senha contra um resumo de referência quando o e-mail não existe, para o tempo de resposta não entregar a diferença.
+- Renovar **não estica** o teto de oito horas do RNF13: o token novo herda o prazo do original.
+- Trocar a senha **revoga as sessões abertas**.
+
+### O que a etapa 3 entregou, no cliente
+
+`frontend/` deixou de ser scaffold. Estrutura conforme a seção 8 de `docs/05-arquitetura.md`:
+
+- `estilos/tokens.css` — **gerado das variáveis do Figma**, com os nomes do *code syntax* (`var(--cor-primaria)`). Não edite valores à mão: ajuste no Figma e regenere
+- `servicos/cliente.ts` — axios com interceptador que renova a sessão no 401 e repete a requisição. A renovação é serializada: três 401 simultâneos disparariam três renovações, e como o token é de uso único, duas falhariam e derrubariam quem estava usando o sistema
+- `ui/` — Botão, Campo e Faixa, com foco visível, `aria-describedby` no erro e aviso por cor **mais** símbolo e texto (RNF07, RNF08)
+- `modulos/acesso/` — T01, T02 e as duas telas do RF09, com validação `zod` espelhando as regras do servidor
+- Rotas para telas ainda não construídas mostram aviso honesto, em vez de link quebrado
+
+> ⚠️ **As duas telas do RF09 não existem no protótipo.** T01 prevê o link "Esqueci minha senha", mas o inventário de telas não tem a tela que ele abre nem a de escolher a nova senha. Foram construídas a partir do requisito e dos tokens do design. Quando o protótipo for atualizado ao final, elas precisam entrar — e a contagem de telas do artigo muda.
+
+**Pilha adotada:** react-router, axios, react-hook-form e zod — a documentada na arquitetura. TanStack Query **não** entrou: ela se paga com tabelas paginadas e invalidação após gravação, que chegam na etapa 6. Entra lá, com justificativa, ou não entra.
+
+> ⚠️ **A sessão fica em `localStorage`**, o que significa que um script injetado na página a alcança. As defesas que existem são do servidor: token de acesso de uma hora, token de renovação de uso único e revogação de verdade ao sair. Trocar por cookie `HttpOnly` é decisão de servidor — está na seção 12.
+
+### Envio de e-mail, decidido antes da etapa 3
+
+- `IServicoDeEmail` e `MensagemDeEmail` na Aplicação; adaptador SMTP em `CausaClara.Infraestrutura`
+- Configuração só por `Email__*`, verificada na **inicialização** da API, não no primeiro envio
+- Contêiner de captura no compose: caixa de entrada em http://localhost:8025, nada sai para a internet
+- **147 testes passando** e 1 saltado: o envio real contra servidor SMTP roda só com `CAUSACLARA_SMTP_DE_TESTE` definida, com o compose de pé
+
+```bash
+docker compose up -d
+$env:CAUSACLARA_SMTP_DE_TESTE = "localhost:1025"; dotnet test backend/CausaClara.slnx
+```
+
+### Comandos do dia a dia
+
+```bash
+dotnet tool restore              # depois de clonar, para ter o dotnet-ef
+cp .env.example .env
+docker compose up                # banco + api + web (RNF33)
+npm run verificar                # testes do backend e build do frontend
+```
 
 ---
 
@@ -94,8 +178,30 @@ causa-clara/
 │     ├─ diagramas.drawio
 │     ├─ figma-estado.json      IDs de tudo que existe no Figma
 │     └─ figma-scripts/         scripts de construção do protótipo + linter
-├─ backend/               (a criar)
-└─ frontend/              (a criar)
+├─ backend/
+│  ├─ CausaClara.slnx           solução (.slnx é o padrão do SDK 10)
+│  ├─ Directory.Build.props     alvo, análise, TreatWarningsAsErrors
+│  ├─ Directory.Packages.props  versões de pacote centralizadas
+│  ├─ Dockerfile
+│  ├─ src/
+│  │  ├─ CausaClara.Dominio/       zero dependências, por construção
+│  │  ├─ CausaClara.Aplicacao/     casos de uso e IContextoDeDados
+│  │  ├─ CausaClara.Persistencia/  EF Core, mapeamentos, Migrations/
+│  │  ├─ CausaClara.Infraestrutura/ adaptadores externos: e-mail, depois PDF
+│  │  └─ CausaClara.Api/           controllers, OpenAPI, tratadores de erro
+│  └─ tests/
+│     ├─ CausaClara.Testes.Arquitetura/    evidência do RNF32
+│     ├─ CausaClara.Testes.Dominio/        invariantes RN
+│     ├─ CausaClara.Testes.Aplicacao/      paginação e casos de uso
+│     ├─ CausaClara.Testes.Infraestrutura/ montagem de e-mail e configuração
+│     └─ CausaClara.Testes.Integracao/     composição, rotas, isolamento e auditoria
+├─ frontend/              React 19 + Vite 8 + TypeScript (RNF37)
+├─ .config/
+│  └─ dotnet-tools.json   dotnet-ef fixado; rode `dotnet tool restore`
+├─ docker-compose.yml     banco + api + web, um comando (RNF33)
+├─ .env.example           modelo de segredos (RNF18)
+├─ .editorconfig
+└─ package.json           scripts de orquestração
 ```
 
 ### Onde achar o quê, sem fazer busca
@@ -136,7 +242,11 @@ Esta é a armadilha de sequência mais cara do projeto. Acrescentar esses mecani
 
 **1. Isolamento por instituição (RNF12, RN05).** Filtro global de consulta no EF Core sobre toda entidade que implemente `IPertenceAInstituicao`, alimentado por um `IContextoDaRequisicao` resolvido das *claims* do token. Consequência: identificador forjado devolve *não encontrado*, não dado alheio. A falha de IDOR fecha por construção, não por lembrar de um `if`.
 
-> Duas ressalvas: o filtro deve ler o contexto **no momento da consulta** (mesmo escopo do DbContext); e o caminho público de transparência **não usa o filtro** — ele chama `IgnoreQueryFilters()` e filtra pelo `instituicaoId` da rota, em serviço separado, projetando só o que RNF20 e RNF23 autorizam.
+> **Construído na etapa 2**, por convenção que varre o modelo: `Persistencia/Convencoes/FiltrosGlobais.cs`. Basta a entidade implementar o marcador — não há lista para manter.
+
+> ⚠️ **Armadilha do EF Core que custou caro e tem teste de regressão.** O filtro só é reavaliado a cada consulta se a expressão referenciar um **membro de instância do `DbContext`**. Referenciar o serviço `IContextoDaRequisicao` diretamente compila, roda e **congela a primeira instituição que passar pelo modelo** — ou um nulo — para todas as requisições seguintes, porque o EF trata o objeto capturado como subexpressão constante e a avalia uma única vez. Por isso o contexto expõe `InstituicaoDaRequisicao` e a convenção referencia essa propriedade. O teste `O_filtro_le_a_instituicao_no_momento_da_consulta` existe para impedir que isso volte.
+
+> A segunda ressalva segue valendo: o caminho público de transparência **não usa o filtro** — ele chama `IgnoreQueryFilters()` e filtra pelo `instituicaoId` da rota, em serviço separado, projetando só o que RNF20 e RNF23 autorizam.
 
 **2. Transação do estoque (RNF26, RN11–RN14).** Movimentação, atualização de saldo e eventual alerta numa única transação. A regra mora na entidade `ItemEstoque.Movimentar()`, não no controller. Concorrência por token otimista usando a coluna de sistema `xmin` do PostgreSQL — evita saldo inconsistente em saídas simultâneas sem acrescentar coluna ao esquema.
 
@@ -258,9 +368,25 @@ Os scripts validados e um *linter* para essas armadilhas estão em `docs/recurso
 
 ## 12. Pendências abertas
 
-- [ ] Modelo de dados definitivo — campo a campo, com tipos, nulabilidade, índices e *constraints*. É o artefato que mais economiza retrabalho; migração errada custa caro depois.
+### Lacunas que a revisão arquitetural de 29/10/2026 encontrou
+
+Estas não estavam no projeto arquitetural e **precisam de decisão antes das etapas que indicam**. Nenhuma bloqueia a etapa 2.
+
+- [x] ~~**Onde ficam os comprovantes (RF42, RNF17).**~~ **Fechada em 29/10/2026: `bytea` no PostgreSQL**, em tabela `comprovantes` separada de `despesas`, com o tipo verificado pelos bytes iniciais e a Aplicação falando com `IArmazenamentoDeComprovantes`. Razão curta: disco de contêiner é efêmero e quebraria o RF67 em silêncio; objeto externo não tem transação comum com a despesa, o que produz arquivo órfão ou referência quebrada. O teto de 5 MB do RNF17 é o que torna o `bytea` seguro. Justificativa completa na seção 16 de `docs/05-arquitetura.md`. A interface e a tabela nascem na etapa 7, não antes.
+- [x] ~~**Entrega de e-mail (RF09, RF24).**~~ **Fechada em 29/10/2026: SMTP via MailKit**, configurado só por variáveis `Email__*`, com contêiner de captura no ambiente local e provedor real em produção pelas mesmas variáveis. O adaptador mora no projeto novo `CausaClara.Infraestrutura`; nem a Api, nem a Aplicação, nem o Domínio dependem de MailKit, e há teste de arquitetura para cada um. SMTP em vez da API HTTP de um fornecedor porque trocar de provedor passa a ser trocar variáveis, não reescrever código. Justificativa completa na seção 16 de `docs/05-arquitetura.md`. Os modelos de mensagem nascem com os casos de uso, nas etapas 3 e 4.
+- [ ] **Direito à exclusão (RNF21) × trilha de auditoria (RN10, RF81) — decidir antes da etapa 3.** O titular pode pedir exclusão dos dados pessoais, preservados os lançamentos em forma anonimizada. A trilha de auditoria registra o autor de cada operação. Anonimizar um gestor que assinou cem lançamentos exige decidir o que fica: chave estrangeira anulada com nome congelado no registro, ou marca de anonimização no usuário. É decisão de modelo de dados, e migração errada aqui custa caro.
+- [ ] **Percentual aplicado em atividades-fim (RF73) — decidir antes da etapa 9.** O painel público promete esse percentual, o que exige classificar cada categoria de despesa como atividade-fim ou atividade-meio. `Categoria` precisa desse atributo, e ele não está em nenhum documento.
+- [x] ~~**Dois filtros globais na mesma entidade.**~~ **Fechada na etapa 2:** a convenção compõe as condições numa expressão única com `&&`, o que não depende de versão do EF Core nem de filtro nomeado e não tem como regredir para "o segundo filtro substitui o primeiro". Coberto pelo teste `Os_dois_filtros_valem_ao_mesmo_tempo_na_mesma_entidade`.
+- [ ] **RF56 cruza a fronteira de módulos.** Converter doação material em entrada de estoque toca `Doacoes` e `Estoque`. Decidir de qual módulo é o caso de uso antes da etapa 8, para não duplicar regra.
+
+### Pendências anteriores
+
+- [ ] Modelo de dados definitivo — campo a campo, com tipos, nulabilidade, índices e *constraints*. A etapa 1 fechou `usuarios` e `instituicoes`; o resto segue aberto. É o artefato que mais economiza retrabalho; migração errada custa caro depois.
+- [ ] Confirmar a obrigatoriedade dos campos de RF11. A etapa 1 adotou a regra **opcional somente onde um requisito diz opcional**, então site e telefone da instituição nasceram obrigatórios. Exigir site de uma organização pequena é restritivo; mudar isso é mudar o requisito, não o código.
 - [ ] Contrato da API — endpoints × RF × regra de autorização.
-- [ ] Desenho de autenticação e autorização — o que entra no token, como o papel é resolvido, o que acontece com gestor sem vínculo.
+- [x] ~~Desenho de autenticação e autorização.~~ **Fechado na etapa 3.** Senha por PBKDF2-HMAC-SHA512 com sal individual e refazimento automático do resumo quando os parâmetros envelhecem (RNF10). Acesso por JWT HMAC-SHA256 de uma hora, carregando usuário e tipo de conta. Sessão por token opaco de uso único e rotativo, guardado só como resumo, com oito horas de teto absoluto (RNF13) — renovar não estica o prazo. Gestor sem vínculo recebe token sem a *claim* de instituição e enxerga zero lançamentos. Justificativa completa, inclusive o que **não** se revela nas mensagens de erro, na seção 16 de `docs/05-arquitetura.md`.
+- [ ] **Onde guardar a sessão no navegador.** Hoje é `localStorage`, exposto a script injetado. A alternativa é a API emitir e ler cookie `HttpOnly` com `SameSite`, o que muda o contrato dos endpoints de sessão e traz proteção contra CSRF para a conta. Decidir antes de o sistema ir ao ar, não antes da etapa 4.
+- [ ] **O papel de vínculo ainda não entra no token** — `TiposDeClaim` tem usuário, tipo de conta e instituição; Dono e Funcionário entram na etapa 4, junto da entidade que os define.
 - [ ] Renomear o arquivo no Figma pela interface (a API não permite).
 - [ ] Decidir se haverá CI (`.github/workflows`) rodando build e testes. Não é exigência de nenhum RNF, mas dá evidência para o artigo.
 
@@ -268,6 +394,7 @@ Os scripts validados e um *linter* para essas armadilhas estão em `docs/recurso
 
 Decisão de 22/10/2026: estes pontos se avaliam melhor com a aplicação rodando, e os ajustes voltam ao Figma de uma vez, ao final. Ver seção 9.
 
+- [ ] **O protótipo não tem as telas do RF09.** T01 prevê o link "Esqueci minha senha" e o inventário não tem nem a tela que pede o link nem a de escolher a nova senha. As duas já existem no código, construídas a partir do requisito; falta desenhá-las no Figma e acertar a contagem de telas do artigo.
 - [ ] **Categorias sem item de menu.** T19 atende RF45–RF47 mas não está na barra lateral; no protótipo é alcançada pelo seletor de categoria de T12. Escolher entre item próprio no menu ou aba dentro de T18 Cadastro institucional.
 - [ ] **Profundidade da navegação móvel.** As gavetas M20–M22 resolvem o alcance, mas custam um toque a mais em toda troca de seção. Ver se alguma seção merece atalho fixo.
 - [ ] **`docs/recursos/figma-scripts/lint.mjs` não roda:** lê `../figma-prototipo-estado.json`, nome do repositório anterior; aqui o arquivo é `figma-estado.json`. O conjunto de IDs conhecidos também não inclui `telasMovel`, o que daria falso positivo nas telas móveis. Duas linhas, sem pressa — o protótipo está fechado.
@@ -288,6 +415,20 @@ Decisão de 22/10/2026: estes pontos se avaliam melhor com a aplicação rodando
 
 ---
 
-## 14. Nota de ambiente
+## 14. Notas de ambiente
 
 `dotnet remove <projeto> package <pacote>` falhou nesta máquina com "não foi possível encontrar nenhum projeto", mesmo com o caminho do `.csproj`. Editar o `.csproj` direto funciona. Possivelmente relacionado ao acento no caminho do usuário (`C:\Users\Flávio\`).
+
+**`npm create vite` ignora `--template` quando recebe `--yes`**, e entrega o modelo *vanilla* sem React — o que violaria o RNF37 sem erro nenhum. A forma que funciona é `npx --yes create-vite@latest frontend --template react-ts`. Conferir se `react` está em `dependencies` antes de seguir.
+
+**`launchSettings.json` carrega os valores de desenvolvimento**, para que `npm run api` funcione sem preparo: ele aponta para o banco e para a captura de e-mail que o compose publica, com a porta 5000, a mesma do compose e a que o proxy do Vite procura. O arquivo **não vai para a publicação**, então nada ali chega a produção — mas também não ponha valor real nele, e **não escreva comentário**: `dotnet run` não aceita JSON comentado.
+
+**A porta 5432 costuma estar ocupada nesta máquina** por um PostgreSQL em WSL. Por isso o compose publica o banco em `5433` por padrão; dentro da rede do compose a API continua falando na 5432. Se `docker compose up` falhar com "port is already allocated", é isso.
+
+**O `backend/Dockerfile` copia `src/` inteiro antes de publicar, de propósito.** A versão anterior listava cada `.csproj` para reaproveitar a camada de restauração; acrescentar um projeto à solução passou a quebrar a imagem com `NETSDK1004: Assets file not found`, erro que não aponta para a causa e que só aparece na hora de subir o ambiente. Lista que precisa ser lembrada é lista que será esquecida — não reintroduza.
+
+**A API avisa que guarda chaves de proteção de dados num diretório não persistido.** É esperado e inofensivo hoje: nada no projeto usa o *Data Protection* do ASP.NET Core — a credencial de acesso é JWT assinado com a chave de `Token__Chave`, e o token de sessão é segredo opaco. O aviso passa a importar se alguma coisa vier a usar *antiforgery* ou autenticação por *cookie*; até lá, montar volume para chaves que ninguém usa seria ritual.
+
+**Na primeira subida com banco vazio, a API registra uma linha `fail:` do EF Core** dizendo que `__historico_de_migracoes` não existe. É esperado: o EF consulta a tabela de histórico antes de criá-la. Só acontece com banco virgem e não indica problema.
+
+**O log do contêiner do banco avisa `no usable system locales were found`.** Também é esperado: a imagem alpine não traz locales geradas, e o compose não força nenhuma de propósito — ver a seção 16 de `docs/05-arquitetura.md`.

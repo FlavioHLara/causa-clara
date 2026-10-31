@@ -1,0 +1,144 @@
+/* Base da aplicação: normalização mínima e tipografia do protótipo. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  /* RNF07: nunca desabilitar o zoom nem fixar tamanho em pixel absoluto
+     no html — quem aumenta a fonte do navegador precisa ser atendido. */
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--cor-fundo-aplicacao);
+  color: var(--cor-texto-principal);
+  font: var(--texto-corpo);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+h1 {
+  font: var(--texto-titulo-tela);
+}
+
+h2 {
+  font: var(--texto-titulo-secao);
+}
+
+h3 {
+  font: var(--texto-titulo-cartao);
+}
+
+a {
+  color: var(--cor-texto-acento);
+  font: var(--texto-corpo-forte);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/*
+ * RNF07: navegação por teclado precisa ser visível. O anel de foco usa
+ * :focus-visible para não aparecer no clique de mouse, e tem contraste
+ * próprio contra qualquer superfície da paleta.
+ */
+:focus-visible {
+  outline: 2px solid var(--cor-borda-acento);
+  outline-offset: 2px;
+}
+
+/* Conteúdo lido por leitor de tela, invisível na tela. */
+.apenas-leitor-de-tela {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ---------- Cartão ---------- */
+
+.cartao {
+  background: var(--cor-fundo-superficie);
+  border: 1px solid var(--cor-borda-padrao);
+  border-radius: var(--raio-cartao);
+  padding: var(--esp-24);
+}
+
+/* ---------- Página de acesso: uma coluna centrada ---------- */
+
+.pagina-centrada {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--esp-24);
+  /* RNF01: a partir de 360 px, com 16 px de margem de cada lado. */
+  padding: var(--esp-32) var(--esp-16);
+}
+
+.pagina-centrada > * {
+  width: 100%;
+  max-width: 420px;
+}
+
+.marca {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--esp-4);
+  text-align: center;
+}
+
+.marca h1 {
+  color: var(--cor-texto-acento);
+}
+
+.marca p {
+  font: var(--texto-apoio);
+  color: var(--cor-texto-secundario);
+}
+
+.pilha {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-16);
+}
+
+.pilha-estreita {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-8);
+}
+
+.divisor {
+  height: 1px;
+  background: var(--cor-borda-padrao);
+  border: 0;
+  margin: 0;
+}
+
+.texto-apoio {
+  font: var(--texto-apoio);
+  color: var(--cor-texto-apoio);
+}
+
+.centralizado {
+  text-align: center;
+}

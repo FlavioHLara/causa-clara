@@ -105,6 +105,14 @@ Seleção de período e de tipo de relatório: doações, despesas, movimentaç�
 **T18 · Cadastro institucional** — edição dos dados da instituição, restrita ao Dono. *Atende:* RF25
 **T19 · Categorias** — cadastro de categorias de receita, despesa e estoque, com bloqueio de exclusão quando em uso. *Atende:* RF45, RF46, RF47
 
+### Lacuna encontrada na implementação
+
+> **Faltam as duas telas do RF09.** T01 prevê o link "Esqueci minha senha", mas este inventário não tem a tela que pede o link nem a de escolher a nova senha. A lacuna só apareceu ao construir a etapa 3, quando o link de T01 precisou levar a algum lugar.
+>
+> As duas existem no código desde 29/10/2026, feitas a partir do requisito e dos tokens do design: uma pede o endereço e confirma com a mesma mensagem exista ou não a conta — RF09 não pode virar verificador de quem tem cadastro —, e a outra lê o segredo da URL e pede a senha nova duas vezes, avisando que as sessões abertas serão encerradas.
+>
+> Precisam ser desenhadas no Figma quando o protótipo for atualizado, e a contagem de telas do artigo passa de dezenove para vinte e uma.
+
 ---
 
 ## 3. Mapa de navegação

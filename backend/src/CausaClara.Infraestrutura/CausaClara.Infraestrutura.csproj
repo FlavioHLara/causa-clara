@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <PackageReference Include="MailKit" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
+    <PackageReference Include="Microsoft.Extensions.Identity.Core" />
+    <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      Adaptadores para o mundo externo: e-mail hoje, geração de PDF nas etapas
+      9 e 10. Dependem da Aplicação para implementar os contratos que ela
+      declara, e nada depende deste projeto além do composition root da Api.
+    -->
+    <ProjectReference Include="..\CausaClara.Aplicacao\CausaClara.Aplicacao.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="CausaClara.Testes.Infraestrutura" />
+    <!--
+      O fluxo de acesso é exercitado com as implementações reais de resumo de
+      senha e de segredo: substituí-las por dublês mediria o dublê, não o
+      comportamento de que o fluxo depende.
+    -->
+    <InternalsVisibleTo Include="CausaClara.Testes.Integracao" />
+  </ItemGroup>
+
+</Project>

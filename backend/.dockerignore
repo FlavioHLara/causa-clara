@@ -1,0 +1,9 @@
+# Artefatos locais não entram no contexto de build: eles inflam o envio para o
+# daemon e, pior, podem sobrescrever o que foi compilado dentro da imagem.
+**/bin/
+**/obj/
+**/.vs/
+**/TestResults/
+**/*.user
+Dockerfile
+.dockerignore

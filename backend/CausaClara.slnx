@@ -1,0 +1,16 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/CausaClara.Api/CausaClara.Api.csproj" />
+    <Project Path="src/CausaClara.Aplicacao/CausaClara.Aplicacao.csproj" />
+    <Project Path="src/CausaClara.Dominio/CausaClara.Dominio.csproj" />
+    <Project Path="src/CausaClara.Infraestrutura/CausaClara.Infraestrutura.csproj" />
+    <Project Path="src/CausaClara.Persistencia/CausaClara.Persistencia.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/CausaClara.Testes.Aplicacao/CausaClara.Testes.Aplicacao.csproj" />
+    <Project Path="tests/CausaClara.Testes.Arquitetura/CausaClara.Testes.Arquitetura.csproj" />
+    <Project Path="tests/CausaClara.Testes.Dominio/CausaClara.Testes.Dominio.csproj" />
+    <Project Path="tests/CausaClara.Testes.Infraestrutura/CausaClara.Testes.Infraestrutura.csproj" />
+    <Project Path="tests/CausaClara.Testes.Integracao/CausaClara.Testes.Integracao.csproj" />
+  </Folder>
+</Solution>
